@@ -1,104 +1,309 @@
 @import "tailwindcss";
 
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Tus dos colores protagonistas intercambiados */
+  --bg-principal: #fef3c7;
+  /* Ámbar claro (Amber 100) */
+  --texto-principal: #2c2c2c;
+  /* Gris grafito oscuro */
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Contrapartes automáticas */
+  --bg-oscuro: var(--texto-principal);
+  --texto-claro: var(--bg-principal);
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* El hover más oscuro (Negro profundo) */
+  --color-hover-oscuro: #121212;
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
+  /* Detalles rústicos */
+  --color-acento: #714c30;
+  --border: rgba(113, 76, 48, 0.2);
+}
+
+/* Base de la página */
+body {
+  background-color: var(--bg-principal);
+  color: var(--texto-principal);
+  font-family: sans-serif;
+}
+
+/* ==========================================
+   ESTILOS DEL COMPONENTE NAVBAR
+   ========================================== */
+
+header {
+  width: 100%;
+  border-b: 1px solid var(--border);
+}
+
+.header-content {
+  margin: auto;
+  display: grid;
+  /* 2fr y 3fr distribuye el espacio: 2 quintos al logo, 3 quintos al menú */
+  grid-template-columns: 2fr 3fr;
+  width: 100%;
+  align-items: stretch;
+  /* Mantiene ambos lados con la misma altura */
+  @apply shadow-sm;
+}
+
+/* --- BLOQUE LOGO (OSCURO) --- */
+.seccion-logo {
+  @apply bg-(--bg-oscuro) text-(--texto-claro) py-6 px-8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.linea-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.linea-titulo h1 {
+  @apply text-2xl font-bold tracking-wide uppercase;
+  font-family: serif;
+  /* Toque elegante para el título */
+}
+
+.cruz {
+  @apply text-5xl font-light opacity-80 pl-4;
+}
+
+.bajada-texto {
+  @apply text-xs md:text-sm font-normal opacity-90;
+  max-width: 280px;
+}
+
+/* --- BLOQUE NAVEGACIÓN (CLARO) --- */
+.seccion-navegador {
+  /* CAMBIO: Quitamos el bg-principal plano y ponemos este fondo lechoso que le da cuerpo */
+  background-color: var(--bg-principal);
+  color: var(--texto-principal);
+  @apply py-4 pl-6 pr-6;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  /* Un poco más de espacio entre enlaces */
+}
+
+/* Estilos de los links individuales */
+.seccion-navegador a {
+  color: var(--texto-principal);
+  font-weight: 700;
+  /* CAMBIO: Más grueso para que tenga presencia */
+  @apply text-xs md:text-sm px-3 py-2 tracking-wide uppercase;
+  /* CAMBIO: En mayúsculas se ve más imponente */
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+/* Tu hover oscuro profundo */
+.seccion-navegador a:hover {
+  color: var(--color-hover-oscuro);
+  @apply underline decoration-(--color-acento) underline-offset-4;
+}
+
+/* ==========================================
+   ESTILOS DE LAS TARJETAS (NUBES DE OPINIÓN)
+   ========================================== */
+
+.tarjeta-columna {
+  width: 100%;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  /* 🎯 EFECTO NUBE: 
+     Fondo un pelín más claro/limpio, bordes redondeados suaves y una micro sombra para que flote */
+  background-color: rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(113, 76, 48, 0.05), 0 2px 4px -1px rgba(113, 76, 48, 0.03);
+  border: 1px solid rgba(113, 76, 48, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Micro interacción para que la nube reaccione al pasar el mouse */
+.tarjeta-columna:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(113, 76, 48, 0.08);
+}
+
+/* Cuando la tarjeta tiene imagen, usamos Flexbox de lado a lado */
+.tarjeta-columna.con-imagen {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+/* Cuando es solo texto */
+.tarjeta-columna.solo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tarjeta-contenedor-img {
+  flex-shrink: 0;
+  width: 200px;
+  height: 140px;
+  border-radius: 8px;
+  /* Redondeamos también la foto para que juegue con la nube */
+  overflow: hidden;
+}
+
+.tarjeta-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tarjeta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.tarjeta-titulo {
+  color: var(--texto-principal);
+  @apply text-xl font-bold tracking-tight leading-tight;
+  font-family: serif;
+}
+
+.tarjeta-fecha {
+  color: var(--texto-principal);
+  @apply text-xs opacity-50 font-sans mb-1;
+}
+
+.tarjeta-cuerpo {
+  color: var(--texto-principal);
+  @apply text-sm leading-relaxed opacity-80;
+  font-family: sans-serif;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tarjeta-leer-mas {
+  color: var(--color-acento);
+  @apply text-xs font-semibold mt-2 underline underline-offset-4 decoration-1;
+  transition: color 0.2s ease;
+}
+
+.tarjeta-leer-mas:hover {
+  color: var(--color-hover-oscuro);
+}
+
+/* ==========================================
+   ESTILOS DEL CONTENEDOR PRINCIPAL (LAYOUT EXTENDIDO)
+   ========================================== */
+
+.main-layout {
+  width: 100%;
+  padding: 3rem 0;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  /* Le damos un pelín más de ancho para la tarjeta */
+  align-items: start;
+  /* Volvemos a start para que la tarjeta flote arriba */
+}
+
+/* --- SIDEBAR PERFIL (TARJETA VOLADORA) --- */
+.perfil-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Centramos el contenido dentro de su propia tarjeta */
+  text-align: center;
+
+  /* Margen respecto a los bordes */
+  margin-left: 3.5rem;
+  margin-right: 1.5rem;
+  padding: 2rem 1.5rem;
+
+  /* 🎯 EFECTO VOLADOR:
+     Fondo blanco traslúcido, bordes redondeados marcados y sombra flotante */
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(44, 44, 44, 0.1), 0 8px 10px -6px rgba(44, 44, 44, 0.05);
+  border: 1px solid rgba(113, 76, 48, 0.12);
+}
+
+.perfil-contenedor-img {
+  width: 120px;
+  /* Un pelo más compacta para que calce bien en la tarjeta */
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  border: 2px solid var(--bg-principal);
+  /* Anillo claro de separación */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.perfil-contenedor-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.perfil-sidebar h3 {
+  color: var(--texto-principal);
+  @apply text-lg font-bold tracking-tight mb-2;
+  font-family: serif;
+}
+
+.perfil-sidebar p {
+  color: var(--texto-principal);
+  @apply text-xs leading-relaxed opacity-75;
+  font-family: sans-serif;
+  max-width: 200px;
+}
+
+/* --- CONTENEDOR DE ESCRITOS --- */
+.columnas-feed {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 780px;
+  padding-left: 2rem;
+  padding-right: 4rem;
+}
+
+/* ==========================================
+   📱 ADAPTACIÓN PARA CELULARES
+   ========================================== */
+@media (max-width: 768px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+    padding: 2rem 1rem;
   }
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  .perfil-sidebar {
+    margin-left: 0;
+    margin-right: 0;
+    margin-bottom: 2.5rem;
+    background-color: rgba(255, 255, 255, 0.4);
+    /* Más ligera en móvil */
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  .columnas-feed {
+    padding-left: 0;
+    padding-right: 0;
   }
-}
 
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+  .tarjeta-columna.con-imagen {
+    flex-direction: column;
+    /* La foto del post se va arriba en celulares */
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+  .tarjeta-contenedor-img {
+    width: 100%;
+    height: 180px;
   }
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }

@@ -1,122 +1,69 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React from 'react'
+import Navbar from './components/Navbar'
+import ColumnaCard from './components/ColumnaCard'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const escritos = [
+    {
+      id: 1,
+      titulo: "Memorias del Viejo Tranvía",
+      fecha: "June 14, 2024",
+      cuerpo: "Cada mañana, el sonido del riel me recordaba a un viejo mago del error; el tiempo... Aquí va el texto completo de la columna describiendo el viaje y los recuerdos del barrio.",
+      imagen: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=500&auto=format&fit=crop&q=60"
+    },
+    {
+      id: 2,
+      titulo: "La Importancia del Tiempo",
+      fecha: "June 10, 2024",
+      cuerpo: "La importancia del tiempo es un tema central en la fe. Cada momento es una oportunidad para conectar con lo trascendente y reflexionar sobre nuestro camino comunitariamente..."
+    },
+    {
+      id: 3,
+      titulo: "Un Paseo por el Parque en Otoño",
+      fecha: "June 05, 2024",
+      cuerpo: "Un paseo por el parque en otoño es una experiencia espiritual. Los colores cálidos del paisaje, las hojas cayendo y el aire fresco nos invitan a meditar en la creación..."
+    }
+  ]
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
+    <div className="min-h-screen flex flex-col">
+
+      <Navbar />
+
+      {/* 🎯 CAMBIO DE DISTRIBUCIÓN:
+         max-w-[1126px] mantiene todo alineado con el Navbar.
+         grid-cols-4 da el peso correcto: 1 parte para el perfil, 3 partes para los escritos. */}
+      <main className="main-layout">
+
+        {/* LADO IZQUIERDO: Perfil de Miguel (Barra lateral compacta) */}
+        <section className="perfil-sidebar">
+          <div className="perfil-contenedor-img">
+            <img
+              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&auto=format&fit=crop&q=80"
+              alt="Miguel A. Rodríguez"
+            />
+          </div>
+          <h3>Miguel A. Rodríguez</h3>
           <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+            Hola! Soy Miguel. Este es mi espacio para compartir mis pensamientos, relatos y experiencias con ustedes.
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+        </section>
 
-      <div className="ticks"></div>
+        {/* LADO DERECHO: Lista de escritos (Ocupa la gran mayoría del espacio) */}
+        <section className="columnas-feed">
+          {escritos.map((articulo) => (
+            <ColumnaCard
+              key={articulo.id}
+              titulo={articulo.titulo}
+              fecha={articulo.fecha}
+              cuerpo={articulo.cuerpo}
+              imagen={articulo.imagen}
+            />
+          ))}
+        </section>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </main>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </div>
   )
 }
-
-export default App
