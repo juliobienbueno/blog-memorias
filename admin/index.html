@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel · Camino al andar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#dcd8cc;--paper2:#e8e4d9;--field:#f3efe4;--ink:#1b1a17;--stamp:#9c2a22;--grey:#6f6c61;--ok:#3f5a36;--warn:#b07a1d}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:"Libre Baskerville",Georgia,serif;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:22px clamp(14px,3vw,36px) 60px}
+header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-top:4px double var(--ink);border-bottom:3px solid var(--ink);padding:14px 0 12px}
+header .acciones{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+h1{margin:0;font:700 clamp(28px,5vw,42px)/1 "Old Standard TT",Georgia,serif}
+h1 small{display:block;font:italic 400 14px "Libre Baskerville",Georgia,serif;color:var(--grey);margin-top:6px}
+h2{margin:0;font:700 24px "Old Standard TT",Georgia,serif}
+a{color:inherit}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border:3px solid var(--ink);background:var(--paper);color:var(--ink);box-shadow:4px 4px 0 var(--ink);
+  font:700 14px "Old Standard TT",Georgia,serif;cursor:pointer;text-decoration:none}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.osc{background:var(--ink);color:var(--paper)}
+.btn.chico{min-height:32px;padding:0 10px;font-size:13px;box-shadow:3px 3px 0 var(--ink);border-width:2px}
+.btn.plano{box-shadow:none;border-width:2px;min-height:36px}
+.btn.peligro{border-color:var(--stamp);color:var(--stamp);box-shadow:3px 3px 0 var(--stamp)}
+.btn.peligro.si{background:var(--stamp);color:#fff}
+:focus-visible{outline:3px solid var(--stamp);outline-offset:2px}
+
+.zona{display:block;margin-top:26px;border:3px dashed var(--ink);background:var(--paper2);padding:34px 20px;text-align:center;cursor:pointer;transition:background .15s}
+.zona.encima{background:var(--field);border-style:solid}
+.zona b{display:block;font:700 22px "Old Standard TT",Georgia,serif;margin-bottom:6px}
+.zona span{color:var(--grey);font-size:14px}
+.zona input{display:none}
+
+.log{list-style:none;margin:14px 0 0;padding:0;font-size:14px}
+.log li{padding:8px 12px;border-left:4px solid var(--grey);background:var(--paper2);margin-top:6px}
+.log li.ok{border-color:var(--ok)}.log li.aviso{border-color:var(--warn)}.log li.error{border-color:var(--stamp)}
+.log small{display:block;color:var(--grey)}
+
+.barra{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin:40px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--ink)}
+.barra .der{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:14px}
+.barra input[type=search]{padding:8px 10px;border:2px solid var(--ink);background:var(--field);font:14px "Libre Baskerville",Georgia,serif;min-width:220px}
+.cuenta{font-style:italic;color:var(--grey);font-size:14px}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font:700 13px "Old Standard TT",Georgia,serif;text-transform:uppercase;letter-spacing:.05em;color:var(--grey);padding:8px;border-bottom:2px solid var(--ink)}
+td{padding:10px 8px;border-bottom:1px dotted var(--grey);vertical-align:top}
+td.t a{font-weight:700;text-decoration:none}td.t a:hover{color:var(--stamp)}
+td.t small{display:block;color:var(--grey);font-style:italic;margin-top:2px;max-width:60ch}
+td input{width:100%;min-width:120px;padding:5px 7px;border:1px solid transparent;background:transparent;font:14px "Libre Baskerville",Georgia,serif;color:var(--ink)}
+td input:hover{border-color:var(--grey)}td input:focus{border-color:var(--ink);background:var(--field);outline:none}
+td input.guardado{background:#e3ead9}
+td.acc{white-space:nowrap}td.acc .btn+.btn{margin-left:8px}
+.n{text-align:right;white-space:nowrap;color:var(--grey);font-variant-numeric:tabular-nums}
+.chip{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid var(--warn);color:#7a520f;background:#f3e6c8}
+.chip.ed{border-color:var(--ok);color:var(--ok);background:#e3ead9}
+.vacio{padding:30px;text-align:center;color:var(--grey);font-style:italic}
+.nota{margin-top:30px;font-size:13px;color:var(--grey)}
+
+/* ---------- editor ---------- */
+.editor{margin-top:22px}
+.ed-barra{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 0;background:var(--paper);border-bottom:2px solid var(--ink)}
+.ed-barra .izq,.ed-barra .der{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.estado{font-size:13px;font-style:italic;color:var(--grey)}
+.estado.sucio{color:var(--warn)}.estado.ok{color:var(--ok)}.estado.error{color:var(--stamp)}
+.campos{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;margin-top:22px}
+.campo{display:flex;flex-direction:column;gap:6px}
+.campo+.campo{margin-top:18px}
+.campo label{font:700 14px "Old Standard TT",Georgia,serif;letter-spacing:.04em;text-transform:uppercase}
+.campo .desc{font-size:12.5px;color:var(--grey);margin-top:-2px}
+.campo input,.campo textarea{width:100%;padding:12px 14px;border:2px solid var(--ink);background:var(--field);color:var(--ink);font:17px/1.6 "Libre Baskerville",Georgia,serif;resize:vertical}
+.campo input:focus,.campo textarea:focus{outline:3px solid var(--stamp);outline-offset:1px}
+#e-titulo{font:700 26px/1.25 "Old Standard TT",Georgia,serif}
+#e-bajada{font-style:italic}
+#e-cuerpo{min-height:65vh;font-size:17px;line-height:1.75}
+#e-nota{color:var(--stamp)}
+.lado{align-self:start;position:sticky;top:130px;display:flex;flex-direction:column;gap:0}
+.guia{margin-top:22px;border:2px solid var(--ink);background:var(--paper2);padding:14px 16px;font-size:13.5px}
+.guia h3{margin:0 0 8px;font:700 15px "Old Standard TT",Georgia,serif}
+.guia dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:baseline}
+.guia dt{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:nowrap}
+.guia dd{margin:0;color:#3b3934}
+.origen{margin-top:14px;font-size:12.5px;color:var(--grey)}
+@media (max-width:860px){.campos{grid-template-columns:1fr}.lado{position:static}}
+
+dialog{border:3px solid var(--ink);background:var(--paper2);color:var(--ink);padding:22px;width:min(420px,calc(100vw - 32px));box-shadow:8px 8px 0 var(--ink)}
+dialog::backdrop{background:rgba(27,26,23,.55)}
+dialog h2{font-size:22px;margin-bottom:6px}
+dialog label{display:block;margin-top:12px;font:700 13px "Old Standard TT",Georgia,serif}
+dialog input{width:100%;margin-top:4px;padding:9px 10px;border:2px solid var(--ink);background:var(--field);font:15px "Libre Baskerville",Georgia,serif}
+dialog .fila{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+dialog .msg{min-height:1.4em;margin:10px 0 0;font-size:13px;color:var(--stamp)}
+@media (max-width:760px){
+  thead{display:none}table,tbody,tr,td{display:block;width:100%}
+  tr{padding:10px 0;border-bottom:2px solid var(--ink)}td{border:0;padding:4px 0}.n{text-align:left}
+}
+
+
+.opc{text-transform:none;font-weight:400}
+.quien{font-size:13px;font-style:italic;color:var(--grey)}
+.acceso{display:grid;place-items:center;padding:48px 0}
+.caja{width:100%;max-width:400px;border:3px solid var(--ink);background:var(--paper2);box-shadow:8px 8px 0 var(--ink);padding:24px}
+.caja h2{border-bottom:3px double var(--ink);padding-bottom:10px;margin-bottom:6px}
+.caja label{display:block;margin-top:14px;font:700 14px "Old Standard TT",Georgia,serif}
+.caja input{width:100%;margin-top:6px;padding:11px 12px;border:2px solid var(--ink);background:var(--field);font:16px "Libre Baskerville",Georgia,serif;color:var(--ink)}
+.btn.ancho{width:100%;justify-content:center;margin-top:20px;min-height:46px;font-size:16px}
+.msg{min-height:1.4em;margin:12px 0 0;font-size:13.5px;color:var(--stamp)}
+.msg.ok{color:var(--ok)}
+.ayuda{font-size:13.5px;color:var(--grey);margin:8px 0 0}
+.enlace{margin-top:6px;background:none;border:0;padding:0;color:var(--ink);font:13.5px "Libre Baskerville",Georgia,serif;text-decoration:underline;cursor:pointer}
+.publicar{position:sticky;top:0;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding:10px 14px;border:2px solid var(--ink);background:var(--paper2);font-size:14px}
+.publicar.ok{border-color:var(--ok)}.publicar.pendiente{border-color:var(--warn)}.publicar.error{border-color:var(--stamp)}
+dialog.ancho{width:min(560px,calc(100vw - 32px))}
+dialog hr{margin:22px 0 14px;border:0;border-top:2px solid var(--ink)}
+dialog h3{margin:0;font:700 18px "Old Standard TT",Georgia,serif}
+dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
+.ed-barra{top:52px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Camino al andar<small>Panel de columnas</small></h1>
+    <div class="acciones" id="acciones" hidden>
+      <span class="quien" id="quien"></span>
+      <a class="btn osc" href="/" target="_blank" rel="noopener">Ver el sitio ↗</a>
+      <button class="btn plano" id="b-ajustes" type="button">Ajustes</button>
+      <button class="btn plano" id="b-clave" type="button">Cambiar contraseña</button>
+      <button class="btn plano" id="b-salir" type="button">Salir</button>
+    </div>
+  </header>
+
+  <!-- ===== Acceso ===== -->
+  <section id="v-acceso" class="acceso" hidden>
+    <form class="caja" id="f-entrar">
+      <h2>Entrar</h2>
+      <label for="a-correo">Correo</label>
+      <input id="a-correo" type="email" autocomplete="username" required>
+      <label for="a-clave">Contraseña</label>
+      <input id="a-clave" type="password" autocomplete="current-password" required>
+      <button class="btn osc ancho" type="submit" id="a-boton">Entrar</button>
+      <p class="msg" id="a-msg" role="alert"></p>
+      <button class="enlace" type="button" id="a-olvide">¿Olvidaste tu contraseña?</button>
+    </form>
+    <form class="caja" id="f-recuperar" hidden>
+      <h2>Recuperar contraseña</h2>
+      <p class="ayuda">Te enviaremos un correo con un enlace para crear una contraseña nueva.</p>
+      <label for="r-correo">Correo</label>
+      <input id="r-correo" type="email" autocomplete="username" required>
+      <button class="btn osc ancho" type="submit">Enviar el correo</button>
+      <p class="msg" id="r-msg" role="alert"></p>
+      <button class="enlace" type="button" id="r-volver">← Volver</button>
+    </form>
+    <form class="caja" id="f-nueva" hidden>
+      <h2>Crea tu contraseña nueva</h2>
+      <label for="n-clave">Contraseña nueva (mínimo 8 caracteres)</label>
+      <input id="n-clave" type="password" autocomplete="new-password" minlength="8" required>
+      <label for="n-clave2">Repítela</label>
+      <input id="n-clave2" type="password" autocomplete="new-password" required>
+      <button class="btn osc ancho" type="submit">Guardar y entrar</button>
+      <p class="msg" id="n-msg" role="alert"></p>
+    </form>
+  </section>
+
+  <!-- ===== Barra de publicación ===== -->
+  <div class="publicar" id="publicar" hidden>
+    <span id="pub-txt"></span>
+    <button class="btn chico" id="pub-ahora" type="button">Publicar ahora</button>
+  </div>
+
+  <!-- ===== Lista ===== -->
+  <section id="v-lista" hidden>
+    <label class="zona" id="zona">
+      <b>Arrastra aquí los Word de las columnas</b>
+      <span>o haz clic para elegirlos · puedes cargar varios a la vez (.docx)</span>
+      <input type="file" id="archivo" accept=".docx,.doc" multiple>
+    </label>
+    <ul class="log" id="log"></ul>
+
+    <div class="barra">
+      <div><h2>Columnas</h2><span class="cuenta" id="cuenta"></span></div>
+      <div class="der">
+        <label><input type="checkbox" id="soloAvisos"> Solo las que tienen algo que revisar</label>
+        <input type="search" id="filtro" placeholder="Buscar por título…" aria-label="Buscar por título">
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Columna</th><th style="width:190px">Fecha</th><th style="width:150px">Tema (opcional)</th><th class="n" style="width:80px">Palabras</th><th style="width:170px"></th></tr></thead>
+      <tbody id="filas"><tr><td colspan="5" class="vacio">Cargando…</td></tr></tbody>
+    </table>
+    <p class="nota">La fecha y el tema se guardan al salir del campo. Con <b>Editar</b> corriges el título, la bajada y el texto completo. Si vuelves a cargar el Word de una columna, reemplaza el texto (también lo editado aquí), pero conserva el tema y la fecha corregida. Los cambios se publican en el sitio automáticamente unos segundos después.</p>
+  </section>
+
+  <!-- ===== Editor ===== -->
+  <section id="v-editor" class="editor" hidden>
+    <div class="ed-barra">
+      <div class="izq">
+        <button class="btn plano" id="ed-volver" type="button">← Volver a la lista</button>
+        <span class="estado" id="ed-estado" aria-live="polite"></span>
+      </div>
+      <div class="der">
+        <a class="btn plano" id="ed-ver" href="#" target="_blank" rel="noopener">Ver en el sitio ↗</a>
+        <button class="btn osc" id="ed-guardar" type="button">Guardar cambios</button>
+      </div>
+    </div>
+    <div class="campos">
+      <div>
+        <div class="campo"><label for="e-titulo">Título</label><input id="e-titulo" type="text"></div>
+        <div class="campo"><label for="e-bajada">Bajada</label><textarea id="e-bajada" rows="3"></textarea></div>
+        <div class="campo">
+          <label for="e-cuerpo">Texto de la columna</label>
+          <span class="desc">Deja una línea en blanco entre párrafos. Las marcas de la derecha dan formato a intertítulos, citas y cursivas.</span>
+          <textarea id="e-cuerpo" spellcheck="true"></textarea>
+        </div>
+      </div>
+      <aside class="lado">
+        <div class="campo"><label for="e-fecha">Fecha</label><input id="e-fecha" type="text" placeholder="Julio de 1990"></div>
+        <div class="campo"><label for="e-tema">Tema <span class="opc">(opcional)</span></label><input id="e-tema" type="text" placeholder="Sin tema"></div>
+        <div class="campo"><label for="e-epigrafe">Epígrafe <span class="opc">(opcional)</span></label><span class="desc">Cita que va bajo la bajada.</span><textarea id="e-epigrafe" rows="4"></textarea></div>
+        <div class="campo"><label for="e-nota">Nota del autor <span class="opc">(opcional)</span></label><span class="desc">Se muestra en un recuadro rojo antes del texto.</span><textarea id="e-nota" rows="4"></textarea></div>
+        <div class="guia">
+          <h3>Marcas en el texto</h3>
+          <dl>
+            <dt>## Texto</dt><dd>Intertítulo</dd>
+            <dt>&gt; Texto</dt><dd>Cita destacada</dd>
+            <dt>!! Texto</dt><dd>Nota en rojo dentro del texto</dd>
+            <dt>*texto*</dt><dd><em>cursiva</em></dd>
+            <dt>**texto**</dt><dd><strong>negrita</strong></dd>
+          </dl>
+        </div>
+        <p class="origen" id="ed-origen"></p>
+      </aside>
+    </div>
+  </section>
+</div>
+
+<dialog id="d-clave" aria-labelledby="d-clave-t">
+  <form id="f-clave">
+    <h2 id="d-clave-t">Cambiar contraseña</h2>
+    <label for="c-nueva">Nueva contraseña (mínimo 8 caracteres)</label><input id="c-nueva" type="password" autocomplete="new-password" minlength="8" required>
+    <label for="c-nueva2">Repítela</label><input id="c-nueva2" type="password" autocomplete="new-password" required>
+    <p class="msg" id="c-msg" role="alert"></p>
+    <div class="fila"><button class="btn plano" type="button" data-cerrar>Cancelar</button><button class="btn osc" type="submit">Cambiar</button></div>
+  </form>
+</dialog>
+
+<dialog id="d-ajustes" aria-labelledby="d-ajustes-t" class="ancho">
+  <form id="f-ajustes">
+    <h2 id="d-ajustes-t">Ajustes</h2>
+    <label for="j-hook">Dirección de publicación de Vercel (Deploy Hook)</label>
+    <input id="j-hook" type="url" placeholder="https://api.vercel.com/v1/integrations/deploy/…">
+    <p class="ayuda">Con esta dirección el sitio se vuelve a publicar solo después de cada cambio. Se obtiene en Vercel → Settings → Git → Deploy Hooks.</p>
+    <p class="msg" id="j-msg" role="alert"></p>
+    <div class="fila"><button class="btn plano" type="button" data-cerrar>Cerrar</button><button class="btn osc" type="submit">Guardar</button></div>
+  </form>
+  <hr>
+  <h3>Respaldo</h3>
+  <p class="ayuda">Descarga todas las columnas en un archivo, o carga un respaldo (por ejemplo el <i>columnas.json</i> de la versión de escritorio). Cargar un respaldo agrega o reemplaza columnas con el mismo título; no borra las demás.</p>
+  <div class="fila izq">
+    <button class="btn plano" type="button" id="j-bajar">Descargar respaldo</button>
+    <label class="btn plano" for="j-subir">Cargar respaldo…</label>
+    <input id="j-subir" type="file" accept=".json,application/json" hidden>
+  </div>
+  <p class="msg" id="j-resp" role="status"></p>
+</dialog>
+
+<script src="config.js"></script>
+<script src="nucleo.js"></script>
+<script src="panel.js"></script>
+</body>
+</html>

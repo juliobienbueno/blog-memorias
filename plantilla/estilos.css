@@ -1,0 +1,155 @@
+:root{
+  --paper:#dcd8cc;--ink:#1b1a17;--stamp:#9c2a22;--grey:#6f6c61;--shadow:#1b1a17;--vig:rgba(90,80,50,.25);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Libre Baskerville",Georgia,serif;line-height:1.5}
+.page{width:100%;min-height:100vh;min-height:100dvh;padding:clamp(14px,2.5vh,26px) clamp(16px,3vw,48px) clamp(12px,2vh,24px);box-shadow:inset 0 0 160px var(--vig);display:flex;flex-direction:column}
+.page>main{flex:1}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--stamp);outline-offset:3px}
+
+/* Cabecera */
+.mast{text-align:center;border-top:4px double var(--ink);border-bottom:1px solid var(--ink);padding:20px 0 16px}
+.mast .nombre{display:block;margin:0;font:700 clamp(46px,11vw,100px)/1 "Old Standard TT",Georgia,serif;letter-spacing:.005em}
+.mast.chica .nombre{font-size:clamp(34px,7vw,56px)}
+.mast p{margin:12px auto 0;max-width:54ch;font-style:italic;font-size:16px;color:var(--grey)}
+.site-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 28px;border-bottom:3px solid var(--ink);padding:10px 0;font:700 15px "Old Standard TT",Georgia,serif}
+.site-nav a:hover,.site-nav a[aria-current="page"]{color:var(--stamp)}
+
+/* Carrusel */
+.head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;margin:34px 0 4px}
+.head h2,.head h1{margin:0;font:700 30px/1.1 "Old Standard TT",Georgia,serif}
+.head p{margin:4px 0 0;font-size:14px;font-style:italic;color:var(--grey)}
+.btn{display:inline-grid;place-items:center;min-width:44px;height:44px;padding:0 12px;border:3px solid var(--ink);background:var(--paper);color:var(--ink);
+  box-shadow:4px 4px 0 var(--shadow);cursor:pointer;font:700 14px "Old Standard TT",Georgia,serif}
+.btn:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--shadow)}
+.btn svg{width:18px;height:18px}
+.arrows{display:flex;gap:12px}
+
+.carousel{container-type:inline-size;--gap:28px}
+.viewport{--pv:2;overflow:hidden;padding:24px 14px 16px 8px;touch-action:pan-y}
+.track{list-style:none;margin:0;padding:0;display:flex;gap:var(--gap);will-change:transform;user-select:none}
+.viewport{cursor:grab}
+.slide{-webkit-user-drag:none}
+.slide{flex:0 0 calc((100% - var(--gap) * (var(--pv) - 1)) / var(--pv))}
+@container (min-width:640px){.viewport{--pv:3}}
+@container (min-width:940px){.viewport{--pv:4}}
+@container (max-width:460px){.carousel{--gap:18px}}
+
+.card{position:relative;display:flex;flex-direction:column;height:100%;padding:22px 18px 18px;border:3px solid var(--ink);box-shadow:7px 7px 0 var(--shadow)}
+.k0{background:#1b1a17;color:#e4e0d3}
+.k1{background:#2e2b25;color:#e4e0d3}
+.k2{background:#3b2422;color:#e4e0d3}
+.k3{background:#2f322c;color:#e4e0d3}
+.yr{position:absolute;top:-16px;right:-10px;width:60px;height:60px;border-radius:50%;background:#f3efe4;color:#9c2a22;border:3px solid #9c2a22;
+  display:grid;place-items:center;font:700 16px "Old Standard TT",Georgia,serif;transform:rotate(9deg)}
+.tag{align-self:flex-start;font:700 12px/1 "Libre Baskerville",Georgia,serif;padding:5px 11px;border:2px solid currentColor;border-radius:99px}
+.card h3{margin:16px 0 10px;font:700 22px/1.15 "Old Standard TT",Georgia,serif}
+.card p{margin:0 0 18px;flex:1;font-size:14px;line-height:1.6}
+.card p.bj{font-style:italic}
+.card .more{margin-top:auto;align-self:flex-start;font-weight:700;font-size:14px;border-bottom:2px solid currentColor}
+.card .more::after{content:"";position:absolute;inset:0}
+@container (max-width:460px){
+  .card{padding:20px 12px 14px;box-shadow:5px 5px 0 var(--shadow)}
+  .card h3{font-size:17px}
+  .card p{display:none}
+  .yr{width:48px;height:48px;font-size:13px;top:-14px;right:-8px}
+  .tag{font-size:11px;padding:4px 8px}
+}
+.contador{margin:6px 0 0;font-size:13px;font-style:italic;color:var(--grey)}
+.contador.oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* Listados (por tema, por año, buscar) */
+.grupo{margin-top:34px}
+.grupo h2{margin:0 0 12px;padding-bottom:6px;border-bottom:1px solid var(--ink);font:700 24px "Old Standard TT",Georgia,serif}
+.lista{list-style:none;margin:0;padding:0}
+.lista li{display:flex;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px dotted var(--grey)}
+.lista .a{flex:0 0 3.2em;font:700 15px "Old Standard TT",Georgia,serif;color:var(--stamp)}
+.lista a{font-weight:700}
+.lista a:hover{color:var(--stamp)}
+.lista small{display:block;font-style:italic;color:var(--grey);font-size:13px;font-weight:400}
+.indice{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font:700 15px "Old Standard TT",Georgia,serif}
+.indice a{border-bottom:2px solid var(--stamp)}
+.buscador{width:100%;max-width:520px;margin-top:18px;padding:12px 14px;font:16px "Libre Baskerville",Georgia,serif;background:#f3efe4;color:var(--ink);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--shadow)}
+
+/* Página de columna */
+.columna{max-width:680px;margin:40px auto 0}
+.columna .meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--grey)}
+.columna .meta .tag{color:var(--stamp)}
+.columna h1{margin:14px 0 8px;font:700 clamp(32px,6vw,48px)/1.1 "Old Standard TT",Georgia,serif}
+.columna .epigrafe{margin:0 0 18px;padding:2px 0 2px 16px;border-left:3px solid var(--grey);font-size:16px;line-height:1.6;color:#3b3934}
+.columna .epigrafe p{margin:0 0 .4em}
+.columna .nota{margin:0 0 22px;padding:10px 14px;border:2px solid var(--stamp);color:var(--stamp);background:rgba(156,42,34,.06);font-size:15px;line-height:1.55}
+.columna .cuerpo .nota{margin:1.2em 0}
+.columna .cuerpo blockquote{margin:1.2em 0;padding:2px 0 2px 18px;border-left:3px solid var(--grey);font-size:17px;color:#3b3934}
+.columna .bajada{margin:0 0 14px;font-size:19px;line-height:1.5;font-style:italic}
+.columna .firma{margin:0 0 28px;font-style:italic;color:var(--grey)}
+.columna .cuerpo h2{margin:1.6em 0 .6em;font:700 15px/1.3 "Libre Baskerville",Georgia,serif;letter-spacing:.06em;color:var(--stamp)}
+.columna .cuerpo{font-size:18px;line-height:1.75}
+.columna .cuerpo p{margin:0 0 1.1em}
+.columna .cuerpo>p:first-child::first-letter{float:left;font:700 64px/.85 "Old Standard TT",Georgia,serif;margin:6px 8px 0 0;color:var(--stamp)}
+.navcol{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;max-width:680px;margin:40px auto 0;width:100%;padding-top:16px;border-top:3px double var(--ink);font-size:14px}
+.navcol a{max-width:48%}
+.navcol a.sig{text-align:right;margin-left:auto}
+.navcol a:hover{color:var(--stamp)}
+.navcol b{display:block;font:700 17px "Old Standard TT",Georgia,serif}
+
+.site-foot{margin-top:44px;padding-top:14px;border-top:3px double var(--ink);text-align:center;font-size:13px;font-style:italic;color:var(--grey)}
+
+/* ---------- Portada: ocupa exactamente la pantalla, sin scroll ---------- */
+body.portada{height:100vh;height:100dvh;overflow:hidden}
+.portada .page{height:100vh;height:100dvh;min-height:0}
+.portada .mast{padding:clamp(8px,2vh,20px) 0 clamp(6px,1.6vh,16px)}
+.portada .mast .nombre{font-size:clamp(36px,min(11vw,12vh),120px)}
+.portada .mast p{margin-top:clamp(4px,1.2vh,12px);font-size:clamp(12px,1.9vh,17px)}
+.portada .site-nav{padding:clamp(6px,1.2vh,10px) 0}
+.portada main{min-height:0;display:flex;flex-direction:column}
+.portada main>section{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center}
+.portada .head{margin:clamp(10px,3vh,34px) 0 0}
+.portada .carousel{flex:0 1 auto;min-height:0;display:flex;flex-direction:column}
+.portada .viewport{flex:0 1 auto;min-height:0;padding-top:clamp(20px,3vh,28px);padding-bottom:clamp(10px,1.6vh,16px)}
+/* Tamaño estándar de tarjeta: alto proporcional a su ancho, con un tope,
+   para que en pantallas muy altas no se estiren. */
+.portada .viewport{height:calc(min(460px,(100cqw - 22px - var(--gap) * (var(--pv) - 1)) / var(--pv) * 1.45) + 44px);max-height:100%}
+.portada .track{height:100%}
+.portada .card{padding:clamp(16px,2.6vh,28px) clamp(14px,1.6vw,24px) clamp(14px,2.2vh,22px)}
+.portada .card h3{margin-top:clamp(10px,2vh,20px);font-size:clamp(17px,min(2vw,3.2vh),28px)}
+.portada .card p{flex:0 1 auto;min-height:0;overflow:hidden;font-size:clamp(13px,min(1.15vw,2vh),16px);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6}
+.portada .card .more{margin-top:auto}
+@container (max-width:460px){.portada .card p{-webkit-line-clamp:4;font-size:12.5px;line-height:1.55}}
+.portada .yr{width:clamp(48px,6vh,68px);height:clamp(48px,6vh,68px);font-size:clamp(13px,1.7vh,17px)}
+.portada .site-foot{margin-top:clamp(8px,1.6vh,16px);padding-top:clamp(6px,1.2vh,14px)}
+@media (max-height:560px){
+  .portada .mast p{font-size:12px;margin-top:2px}
+  .portada .card p{display:none}
+}
+
+/* Presentación (ventana emergente) */
+.abrir-pres{margin-top:clamp(6px,1.2vh,12px);background:none;border:0;border-bottom:2px solid var(--stamp);padding:2px 0;color:var(--stamp);font:700 14px "Old Standard TT",Georgia,serif;letter-spacing:.04em;cursor:pointer}
+.abrir-pres:hover{color:var(--ink);border-color:var(--ink)}
+dialog.pres{width:min(720px,calc(100vw - 32px));max-height:min(86vh,900px);padding:0;border:3px solid var(--ink);background:#e9e5da;color:var(--ink);box-shadow:10px 10px 0 var(--shadow)}
+dialog.pres::backdrop{background:rgba(27,26,23,.62)}
+.pres .cab{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 20px;background:#e9e5da;border-bottom:3px double var(--ink)}
+.pres .cab h2{margin:0;font:700 26px/1.1 "Old Standard TT",Georgia,serif}
+.pres .cerrar{min-width:40px;height:40px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:700 22px/1 Georgia,serif;cursor:pointer}
+.pres .cerrar:hover{background:var(--ink);color:#e9e5da}
+.pres .txt{padding:22px clamp(18px,4vw,40px) 30px;font-size:17px;line-height:1.75}
+.pres .txt p{margin:0 0 1em}
+.pres .txt>p:first-child::first-letter{float:left;font:700 58px/.85 "Old Standard TT",Georgia,serif;margin:6px 8px 0 0;color:var(--stamp)}
+
+/* Pie con contacto */
+.site-foot .contacto{font-style:normal;margin-left:.4em}
+.site-foot .contacto a{border-bottom:1px solid currentColor}
+.site-foot .contacto a:hover{color:var(--stamp)}
+
+/* ---------- Celulares ---------- */
+@media (max-width:600px){
+  .navcol{flex-direction:column;gap:12px}
+  .navcol>span:empty{display:none}
+  .navcol a,.navcol a.sig{max-width:none;width:100%;margin:0;text-align:left;padding:12px 14px;border:2px solid var(--ink);background:rgba(255,255,255,.18)}
+  .navcol a.sig{text-align:right}
+  .navcol b{font-size:16px;margin-top:2px}
+  .site-foot .sep{display:none}
+  .site-foot .contacto{display:block;margin:4px 0 0}
+}

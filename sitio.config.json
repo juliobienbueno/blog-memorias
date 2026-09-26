@@ -1,0 +1,12 @@
+{
+  "titulo": "Camino al andar",
+  "subtitulo": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  "autor": "Raúl Gutiérrez",
+  "descripcion": "Columnas de Raúl Gutiérrez sobre Chile, la fe y la vida cotidiana.",
+  "urlSitio": "",
+  "goatcounter": "",
+  "velocidadCarrusel": 40,
+  "contacto": "contacto@ejemplo.cl",
+  "supabaseUrl": "https://hrazdlvdykpjgxzsgzso.supabase.co",
+  "supabaseKey": "sb_publishable_5EthjjnPVwx83LJZmUFCUw_6jiG0xMU"
+}

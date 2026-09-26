@@ -1,27 +1,11 @@
-# === BACKEND (Python) ===
+sitio/
+node_modules/
+datos/
+.env
+.vscode/
+.DS_Store
+# restos del proyecto anterior
 venv/
 .venv/
-env/
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.env
-
-# === FRONTEND (React) ===
 frontend/node_modules/
-frontend/dist/
-frontend/dist-ssr/
-frontend/*.local
-frontend/logs/
-frontend/*.log
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-
-# === CONFIGURACIONES DE EDITORES ===
-.vscode/
-.idea/
-.DS_Store
-*.suo
-*.sw?

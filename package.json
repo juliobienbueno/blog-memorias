@@ -1,0 +1,10 @@
+{
+  "name": "camino-al-andar",
+  "private": true,
+  "description": "Blog de columnas de Raúl Gutiérrez",
+  "scripts": {
+    "build": "node construir.js",
+    "local": "node construir.js --local datos/columnas.json"
+  },
+  "engines": { "node": ">=18" }
+}
