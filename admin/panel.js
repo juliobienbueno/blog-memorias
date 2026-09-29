@@ -33,6 +33,7 @@ function traducir(m){
   if(/rate limit|too many/i.test(m))return 'Demasiados intentos. Espera unos minutos.';
   if(/jwt expired|invalid jwt/i.test(m))return 'Tu sesión terminó. Vuelve a entrar.';
   if(/row-level security|permission denied/i.test(m))return 'No tienes permiso para hacer esto. Vuelve a entrar.';
+  if(/mensajes/.test(m)&&/does not exist|could not find the table|PGRST205/i.test(m))return 'Falta crear la tabla de mensajes en Supabase: ejecuta el archivo supabase/mensajes.sql en el SQL Editor.';
   if(/failed to fetch|networkerror/i.test(m))return 'No hay conexión con el servidor. Revisa tu internet.';
   return m;
 }
@@ -75,6 +76,10 @@ const DB={
   borrar:id=>rest('columnas?id=eq.'+encodeURIComponent(id),{metodo:'DELETE'}),
   todas:async()=>{const t=[];for(let d=0;;d+=500){const l=await rest(`columnas?select=*&order=id&offset=${d}&limit=500`);t.push(...l);if(l.length<500)return t;}},
   ajuste:async k=>((await rest('ajustes?select=valor&clave=eq.'+k))[0]||{}).valor||'',
+  mensajes:()=>rest('mensajes?select=id,texto,fecha,actualizado_por&order=id'),
+  nuevoMensaje:m=>rest('mensajes',{metodo:'POST',cuerpo:[m],prefer:'return=representation'}),
+  cambiarMensaje:async(id,m)=>(await rest('mensajes?id=eq.'+id,{metodo:'PATCH',cuerpo:m,prefer:'return=representation'}))[0],
+  borrarMensaje:id=>rest('mensajes?id=eq.'+id,{metodo:'DELETE'}),
   fijarAjuste:(k,v)=>rest('ajustes?on_conflict=clave',{metodo:'POST',cuerpo:[{clave:k,valor:v}],prefer:'resolution=merge-duplicates'})
 };
 
@@ -102,7 +107,7 @@ addEventListener('beforeunload',e=>{if(cuentaPub>0||sucio){e.preventDefault();e.
 
 // ================= Vistas =================
 function mostrar(v){
-  for(const id of ['v-acceso','v-lista','v-editor'])$('#'+id).hidden=id!==v;
+  for(const id of ['v-acceso','v-lista','v-editor','v-mensajes'])$('#'+id).hidden=id!==v;
   $('#acciones').hidden=v==='v-acceso';
 }
 function formAcceso(f){for(const id of ['f-entrar','f-recuperar','f-nueva'])$('#'+id).hidden=id!==f;mostrar('v-acceso');const i=$('#'+f+' input');if(i)i.focus();}
@@ -306,12 +311,62 @@ $('#ed-volver').onclick=()=>{
   if(sucio&&!avisoSalir){avisoSalir=true;estado('Tienes cambios sin guardar. Pulsa de nuevo «Volver» para descartarlos.','error');setTimeout(()=>avisoSalir=false,4000);return;}
   avisoSalir=false;sucio=false;location.hash='';
 };
-function ruta(){const m=location.hash.match(/^#editar\/([\w-]+)$/);if(m)abrirEditor(m[1]);else if(actual||$('#v-lista').hidden)cerrarEditor();}
+function ruta(){const m=location.hash.match(/^#editar\/([\w-]+)$/);if(m)abrirEditor(m[1]);else if(location.hash==='#mensajes'){actual=null;abrirMensajes();}else if(actual||$('#v-lista').hidden)cerrarEditor();}
 addEventListener('hashchange',()=>{
   if(!sesion)return;
   if(sucio&&!location.hash.startsWith('#editar/'+actual)){history.replaceState(null,'','#editar/'+actual);estado('Tienes cambios sin guardar. Guarda o pulsa dos veces «Volver» para descartarlos.','error');return;}
   ruta();
 });
+
+// ================= Mensajes del día =================
+let msjs=[];
+const LARGO_IDEAL=160;
+const diaLargo=iso=>{const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d,12)).toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});};
+const sumarDias=(iso,n)=>{const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10);};
+async function abrirMensajes(){
+  mostrar('v-mensajes');scrollTo(0,0);
+  try{msjs=await DB.mensajes();pintarMensajes();}
+  catch(err){$('#m-lista').innerHTML=`<li class="vacio">${esc(err.message)}</li>`;$('#m-hoy').textContent='';$('#m-prox').innerHTML='';}
+}
+function pintarMensajes(){
+  const hoy=N.hoyChile(),m=N.mensajeDelDia(msjs,hoy);
+  const sinFecha=msjs.filter(x=>!x.fecha).length;
+  $('#m-cuenta').textContent=` · ${msjs.length} mensaje${msjs.length===1?'':'s'}${msjs.length?` · ${sinFecha} se turnan`:''}`;
+  $('#m-hoy').innerHTML=m?`Hoy, ${esc(diaLargo(hoy))}, se muestra: <q>${esc(m.texto)}</q>`:'Todavía no hay mensajes: bajo el título de la portada no aparece nada. Agrega el primero aquí abajo.';
+  $('#m-prox').innerHTML=msjs.length?[...Array(7)].map((_,i)=>{const d=sumarDias(hoy,i),x=N.mensajeDelDia(msjs,d);
+    return `<li><b>${i===0?'Hoy':i===1?'Mañana':esc(diaLargo(d).replace(/ de \d{4}$/,'').replace(/^./,c=>c.toUpperCase()))}</b><span>${x?esc(x.texto):'<i>(nada)</i>'}${x&&x.fecha?' <span class="chip">con fecha</span>':''}</span></li>`;}).join(''):'';
+  const orden=[...msjs].sort((a,b)=>(a.fecha?0:1)-(b.fecha?0:1)||String(a.fecha||'').localeCompare(String(b.fecha||''))||a.id-b.id);
+  $('#m-lista').innerHTML=orden.length?orden.map(x=>`<li data-id="${x.id}">
+    <div><textarea data-c="texto" maxlength="400" aria-label="Texto del mensaje">${esc(x.texto)}</textarea>
+      ${x.fecha&&x.fecha<hoy?'<span class="chip">esa fecha ya pasó</span>':''}${x.texto.length>LARGO_IDEAL?' <span class="chip">largo: en el celular puede quedar cortado</span>':''}</div>
+    <input data-c="fecha" type="date" value="${esc(x.fecha||'')}" aria-label="Fecha (opcional)" title="Déjala vacía para que se turne con los demás">
+    <div class="acc"><button class="btn chico" data-guardar type="button">Guardar</button><button class="btn chico peligro" data-quitar type="button">Quitar</button></div></li>`).join('')
+    :'<li class="vacio">Aún no hay mensajes.</li>';
+}
+function largoNuevo(){const n=$('#m-texto').value.trim().length;$('#m-largo').textContent=n?`${n} caracteres${n>LARGO_IDEAL?' · un poco largo: en el celular puede quedar cortado':''}`:'';}
+$('#m-texto').addEventListener('input',largoNuevo);
+$('#f-msj').addEventListener('submit',async e=>{
+  e.preventDefault();const t=$('#m-texto').value.replace(/\s+/g,' ').trim(),f=$('#m-fecha').value||null,msg=$('#m-msg');msg.className='msg';msg.textContent='';
+  if(!t){msg.textContent='Escribe el mensaje.';return;}
+  try{const [r]=await DB.nuevoMensaje({texto:t,fecha:f,actualizado_por:sesion.email});msjs.push(r);
+    $('#f-msj').reset();largoNuevo();pintarMensajes();msg.className='msg ok';msg.textContent='Mensaje agregado.';hayCambios();}
+  catch(err){msg.textContent=err.message;}
+});
+$('#m-lista').addEventListener('click',async e=>{
+  const li=e.target.closest('li[data-id]');if(!li)return;const id=+li.dataset.id;
+  if(e.target.closest('[data-guardar]')){
+    const t=li.querySelector('[data-c=texto]').value.replace(/\s+/g,' ').trim(),f=li.querySelector('[data-c=fecha]').value||null;
+    if(!t){nota('error','El mensaje no puede quedar vacío. Usa «Quitar» para borrarlo.');return;}
+    try{const r=await DB.cambiarMensaje(id,{texto:t,fecha:f,actualizado_por:sesion.email});Object.assign(msjs.find(x=>x.id===id),r);
+      li.querySelectorAll('textarea,input').forEach(x=>x.classList.add('guardado'));setTimeout(pintarMensajes,700);hayCambios();}
+    catch(err){alertaMsj(li,err.message);}
+    return;
+  }
+  const b=e.target.closest('[data-quitar]');if(!b)return;
+  if(!b.classList.contains('si')){b.classList.add('si');b.textContent='¿Seguro?';setTimeout(()=>{if(b.isConnected){b.classList.remove('si');b.textContent='Quitar';}},3000);return;}
+  try{await DB.borrarMensaje(id);msjs=msjs.filter(x=>x.id!==id);pintarMensajes();hayCambios();}catch(err){alertaMsj(li,err.message);}
+});
+function alertaMsj(li,t){let p=li.querySelector('.msg');if(!p){p=document.createElement('p');p.className='msg';li.firstElementChild.append(p);}p.textContent=t;}
 
 // ================= Inicio =================
 async function iniciar(){

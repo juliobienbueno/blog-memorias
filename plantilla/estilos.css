@@ -153,3 +153,7 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
   .site-foot .sep{display:none}
   .site-foot .contacto{display:block;margin:4px 0 0}
 }
+/* Mensaje del día bajo el título: como mucho 3 líneas para que la portada no necesite scroll */
+[hidden]{display:none!important}
+.mast p.dia{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+@media (max-width:640px){.portada .mast p.dia{-webkit-line-clamp:2;line-clamp:2}}

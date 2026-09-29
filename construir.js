@@ -4,6 +4,7 @@
 //   node construir.js --local respaldo.json → usa un archivo de respaldo (para probar sin internet)
 const fs=require('fs');
 const path=require('path');
+const N=require('./lib/nucleo.js');
 
 const RAIZ=__dirname;
 const SALIDA=path.join(RAIZ,'sitio');
@@ -31,12 +32,29 @@ async function traerColumnas(CFG){
   return todas;
 }
 
+// Trae los mensajes del día. Si la tabla aún no existe, sigue sin ellos.
+async function traerMensajes(CFG){
+  const url=(process.env.SUPABASE_URL||CFG.supabaseUrl||'').replace(/\/$/,'');
+  const clave=process.env.SUPABASE_KEY||CFG.supabaseKey;
+  try{
+    const r=await fetch(`${url}/rest/v1/mensajes?select=id,texto,fecha&order=id`,{headers:{apikey:clave}});
+    if(!r.ok)throw new Error(`Supabase respondió ${r.status}`);
+    return await r.json();
+  }catch(e){console.warn('Aviso: no se pudieron leer los mensajes del día ('+e.message+'). Se usa el subtítulo de sitio.config.json.');return [];}
+}
+
 async function construir(opciones={}){
   const CFG=JSON.parse(fs.readFileSync(path.join(RAIZ,'sitio.config.json'),'utf8'));
   const URL_SITIO=(CFG.urlSitio||(process.env.VERCEL_PROJECT_PRODUCTION_URL?'https://'+process.env.VERCEL_PROJECT_PRODUCTION_URL:'')).replace(/\/$/,'');
   const columnas=ordenar(opciones.local
     ?JSON.parse(fs.readFileSync(opciones.local,'utf8').replace(/^\uFEFF/,''))
     :await traerColumnas(CFG));
+  // Mensajes del día: van todos los sin fecha y los con fecha desde ayer en adelante;
+  // el navegador elige el de hoy (hora de Chile), así cambia cada día sin volver a publicar.
+  const ayer=N.hoyChile(new Date(Date.now()-864e5));
+  const mensajes=(opciones.mensajes?JSON.parse(fs.readFileSync(opciones.mensajes,'utf8')):opciones.local?[]:await traerMensajes(CFG))
+    .filter(m=>m&&String(m.texto||'').trim()&&(!m.fecha||m.fecha>=ayer)).map(m=>({id:m.id,texto:String(m.texto).trim(),fecha:m.fecha||null}));
+  const msjHoy=N.mensajeDelDia(mensajes,N.hoyChile());
   if(!columnas.length)console.warn('Aviso: no hay columnas todavía. Se publica el sitio vacío (con el panel en /admin/).');
   columnas.forEach(c=>{c.resumen=c.bajada||recorte(c.texto,200);});
   const anios=columnas.map(c=>c.anio).filter(Boolean);
@@ -54,7 +72,7 @@ async function construir(opciones={}){
     const canon=URL_SITIO?`${URL_SITIO}/${ruta==='index.html'?'':ruta}`:'';
     const nav=NAV.map(([h,t])=>`<a href="${pre}${h}"${h===ruta?' aria-current="page"':''}>${t}</a>`).join('');
     const mast=portada
-      ?`<header class="mast"><h1 class="nombre">${esc(CFG.titulo)}</h1><p>${esc(CFG.subtitulo)}</p>${presentacion?'<button type="button" class="abrir-pres" id="abrir-pres" aria-haspopup="dialog">Leer la presentación</button>':''}</header>`
+      ?`<header class="mast"><h1 class="nombre">${esc(CFG.titulo)}</h1><p class="dia" id="mensaje-dia"${msjHoy||CFG.subtitulo?'':' hidden'}>${esc(msjHoy?msjHoy.texto:CFG.subtitulo)}</p>${presentacion?'<button type="button" class="abrir-pres" id="abrir-pres" aria-haspopup="dialog">Leer la presentación</button>':''}</header>`
       :`<header class="mast chica"><a class="nombre" href="${pre}index.html">${esc(CFG.titulo)}</a></header>`;
     const desc=descripcion||CFG.descripcion;
     return `<!DOCTYPE html>
@@ -117,6 +135,10 @@ ${presentacion?`<dialog class="pres" id="pres" aria-labelledby="pres-t">
   <div class="cab"><h2 id="pres-t">Presentación</h2><button type="button" class="cerrar" id="cerrar-pres" aria-label="Cerrar la presentación">×</button></div>
   <div class="txt">${parrafos(presentacion)}</div>
 </dialog>`:''}`,scripts:`<script src="carrusel.js"></script>
+${mensajes.length?`<script>(function(){const M=${JSON.stringify(mensajes).replace(/</g,'\\u003c')};
+${N.hoyChile.toString()}
+${N.mensajeDelDia.toString()}
+const m=mensajeDelDia(M,hoyChile()),p=document.getElementById('mensaje-dia');if(m&&p){p.textContent=m.texto;p.hidden=false;}})();</script>`:''}
 <script>(function(){const d=document.getElementById('pres'),a=document.getElementById('abrir-pres');if(!d||!a)return;
 a.onclick=()=>{d.showModal();d.scrollTop=0;};document.getElementById('cerrar-pres').onclick=()=>d.close();
 d.addEventListener('click',e=>{if(e.target===d)d.close();});})();</script>`,
@@ -188,8 +210,8 @@ q.addEventListener('input',f);const u=new URLSearchParams(location.search).get('
 
 module.exports={construir};
 if(require.main===module){
-  const k=process.argv.indexOf('--local');
-  construir(k>0?{local:process.argv[k+1]}:{})
+  const k=process.argv.indexOf('--local'),j=process.argv.indexOf('--mensajes');
+  construir({local:k>0?process.argv[k+1]:undefined,mensajes:j>0?process.argv[j+1]:undefined})
     .then(n=>console.log(`Listo: ${n} columnas → carpeta "sitio".`))
     .catch(e=>{console.error('No se pudo armar el sitio: '+e.message);process.exit(1);});
 }

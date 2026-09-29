@@ -119,6 +119,27 @@ dialog hr{margin:22px 0 14px;border:0;border-top:2px solid var(--ink)}
 dialog h3{margin:0;font:700 18px "Old Standard TT",Georgia,serif}
 dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
 .ed-barra{top:52px}
+/* ---------- mensajes del día ---------- */
+.m-hoy{margin:16px 0 0;padding:14px 18px;border-left:5px solid var(--stamp);background:var(--paper2);font-size:15px}
+.m-hoy q{font-style:italic}
+.m-nuevo{margin-top:22px;border:2px solid var(--ink);background:var(--paper2);padding:16px 18px}
+.m-nuevo textarea{min-height:90px}
+.m-fila{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:14px}
+.m-fila .campo{margin:0;flex:0 1 220px}
+.m-fila .btn{min-height:48px}
+.m-tit{margin:34px 0 8px;font:700 19px "Old Standard TT",Georgia,serif;border-bottom:1px solid var(--ink);padding-bottom:6px}
+.m-prox{list-style:none;margin:0;padding:0;font-size:14.5px}
+.m-prox li{display:grid;grid-template-columns:170px 1fr;gap:12px;padding:7px 0;border-bottom:1px dotted var(--grey)}
+.m-prox li b{font:700 14px "Old Standard TT",Georgia,serif}
+.m-prox li i{color:var(--grey)}
+.m-lista{list-style:none;margin:0;padding:0}
+.m-lista>li{display:grid;grid-template-columns:minmax(0,1fr) 170px auto;gap:12px;align-items:start;padding:12px 0;border-bottom:1px dotted var(--grey)}
+.m-lista textarea,.m-lista input{width:100%;padding:8px 10px;border:1px solid var(--grey);background:var(--field);font:15px/1.5 "Libre Baskerville",Georgia,serif;color:var(--ink);resize:vertical}
+.m-lista textarea{min-height:64px}
+.m-lista .acc{display:flex;gap:8px;flex-wrap:wrap}
+.m-lista .guardado{background:#e3ead9}
+.m-lista .vacio{display:block}
+@media (max-width:760px){.m-lista>li,.m-prox li{grid-template-columns:1fr;gap:6px}}
 </style>
 </head>
 <body>
@@ -128,6 +149,8 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
     <div class="acciones" id="acciones" hidden>
       <span class="quien" id="quien"></span>
       <a class="btn osc" href="/" target="_blank" rel="noopener">Ver el sitio ↗</a>
+      <a class="btn plano" id="b-columnas" href="#">Columnas</a>
+      <a class="btn plano" id="b-mensajes" href="#mensajes">Mensajes del día</a>
       <button class="btn plano" id="b-ajustes" type="button">Ajustes</button>
       <button class="btn plano" id="b-clave" type="button">Cambiar contraseña</button>
       <button class="btn plano" id="b-salir" type="button">Salir</button>
@@ -193,6 +216,31 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
       <tbody id="filas"><tr><td colspan="5" class="vacio">Cargando…</td></tr></tbody>
     </table>
     <p class="nota">La fecha y el tema se guardan al salir del campo. Con <b>Editar</b> corriges el título, la bajada y el texto completo. Si vuelves a cargar el Word de una columna, reemplaza el texto (también lo editado aquí), pero conserva el tema y la fecha corregida. Los cambios se publican en el sitio automáticamente unos segundos después.</p>
+  </section>
+
+  <!-- ===== Mensajes del día ===== -->
+  <section id="v-mensajes" hidden>
+    <div class="barra"><div><h2>Mensajes del día</h2><span class="cuenta" id="m-cuenta"></span></div></div>
+    <p class="m-hoy" id="m-hoy"></p>
+    <form class="m-nuevo" id="f-msj">
+      <div class="campo">
+        <label for="m-texto">Nuevo mensaje</label>
+        <textarea id="m-texto" rows="3" maxlength="400" required placeholder="Buenos días…"></textarea>
+        <span class="desc" id="m-largo"></span>
+      </div>
+      <div class="m-fila">
+        <div class="campo"><label for="m-fecha">Fecha <span class="opc">(opcional)</span></label><input id="m-fecha" type="date"></div>
+        <button class="btn osc" type="submit">Agregar mensaje</button>
+      </div>
+      <p class="msg" id="m-msg" role="alert"></p>
+    </form>
+    <p class="nota">Los mensajes <b>sin fecha</b> se turnan: cada día sale uno distinto, y cuando se acaban vuelven a empezar. Si a un mensaje le pones <b>fecha</b>, sale solo ese día (por ejemplo, para un aniversario o una fiesta). El cambio de día es a medianoche, hora de Chile. Conviene que sean breves: en el celular se ven hasta dos líneas.</p>
+
+    <h3 class="m-tit">Los próximos 7 días</h3>
+    <ol class="m-prox" id="m-prox"></ol>
+
+    <h3 class="m-tit">Todos los mensajes</h3>
+    <ul class="m-lista" id="m-lista"><li class="vacio">Cargando…</li></ul>
   </section>
 
   <!-- ===== Editor ===== -->
