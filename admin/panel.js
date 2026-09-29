@@ -103,6 +103,12 @@ async function publicar(){
   }catch(e){barraPub('No se pudo avisar a Vercel: '+traducir(e.message),'error');}
 }
 $('#pub-ahora').onclick=publicar;
+// La franja del editor queda pegada justo bajo la barra de publicación (o arriba del todo si no está)
+if(window.ResizeObserver){
+  const raiz=document.documentElement.style;
+  new ResizeObserver(()=>raiz.setProperty('--pub',$('#publicar').offsetHeight+'px')).observe($('#publicar'));
+  new ResizeObserver(()=>raiz.setProperty('--edb',$('.ed-barra').offsetHeight+'px')).observe($('.ed-barra'));
+}
 addEventListener('beforeunload',e=>{if(cuentaPub>0||sucio){e.preventDefault();e.returnValue='';}});
 
 // ================= Vistas =================
