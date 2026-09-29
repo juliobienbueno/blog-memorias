@@ -103,12 +103,6 @@ async function publicar(){
   }catch(e){barraPub('No se pudo avisar a Vercel: '+traducir(e.message),'error');}
 }
 $('#pub-ahora').onclick=publicar;
-// La franja del editor queda pegada justo bajo la barra de publicación (o arriba del todo si no está)
-if(window.ResizeObserver){
-  const raiz=document.documentElement.style;
-  new ResizeObserver(()=>raiz.setProperty('--pub',$('#publicar').offsetHeight+'px')).observe($('#publicar'));
-  new ResizeObserver(()=>raiz.setProperty('--edb',$('.ed-barra').offsetHeight+'px')).observe($('.ed-barra'));
-}
 addEventListener('beforeunload',e=>{if(cuentaPub>0||sucio){e.preventDefault();e.returnValue='';}});
 
 // ================= Vistas =================
@@ -267,7 +261,7 @@ async function subir(archivos){
 // ================= Editor =================
 const CAMPOS={titulo:'#e-titulo',bajada:'#e-bajada',fecha:'#e-fecha',tema:'#e-tema',epigrafe:'#e-epigrafe',notas:'#e-nota',cuerpo:'#e-cuerpo'};
 let actual=null,registro=null,original={},sucio=false;
-function estado(txt,clase=''){const e=$('#ed-estado');e.textContent=txt;e.className='estado '+clase;}
+function estado(txt,clase=''){for(const e of [$('#ed-estado'),$('#ed-estado2')]){e.textContent=txt;e.className='estado '+clase;}}
 function crecer(t){t.style.height='auto';t.style.height=Math.max(t.scrollHeight+4,t.id==='e-cuerpo'?innerHeight*.65:0)+'px';}
 function valores(){const v={};for(const [k,s] of Object.entries(CAMPOS))v[k]=$(s).value;return v;}
 function editable(r){return {titulo:r.titulo,bajada:r.bajada||'',fecha:r.fecha||'',tema:r.tema||'',
@@ -304,13 +298,13 @@ async function guardar(){
   if(v.cuerpo!==original.cuerpo){c.cuerpo=N.editableACuerpo(v.cuerpo);c.texto=N.cuerpoATexto(c.cuerpo);}
   if(['titulo','bajada','notas','epigrafe','cuerpo'].some(k=>k in c))c.editado_en_panel=new Date().toISOString();
   c.actualizado_por=sesion.email;
-  $('#ed-guardar').disabled=true;estado('Guardando…');
+  $('#ed-guardar').disabled=$('#ed-guardar2').disabled=true;estado('Guardando…');
   try{const pos=$('#e-cuerpo').selectionStart;llenar(await DB.cambiar(actual,c));$('#e-cuerpo').setSelectionRange(pos,pos);
     estado('Guardado.','ok');hayCambios();}
   catch(err){estado('No se guardó: '+err.message,'error');}
-  finally{$('#ed-guardar').disabled=false;}
+  finally{$('#ed-guardar').disabled=$('#ed-guardar2').disabled=false;}
 }
-$('#ed-guardar').onclick=guardar;
+$('#ed-guardar').onclick=$('#ed-guardar2').onclick=guardar;
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'&&actual){e.preventDefault();guardar();}});
 let avisoSalir=false;
 $('#ed-volver').onclick=()=>{

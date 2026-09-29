@@ -63,7 +63,7 @@ td.acc{white-space:nowrap}td.acc .btn+.btn{margin-left:8px}
 
 /* ---------- editor ---------- */
 .editor{margin-top:22px}
-.ed-barra{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 0;background:var(--paper);border-bottom:2px solid var(--ink)}
+.ed-barra{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 0;background:var(--paper);border-bottom:2px solid var(--ink)}
 .ed-barra .izq,.ed-barra .der{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .estado{font-size:13px;font-style:italic;color:var(--grey)}
 .estado.sucio{color:var(--warn)}.estado.ok{color:var(--ok)}.estado.error{color:var(--stamp)}
@@ -78,7 +78,7 @@ td.acc{white-space:nowrap}td.acc .btn+.btn{margin-left:8px}
 #e-bajada{font-style:italic}
 #e-cuerpo{min-height:65vh;font-size:17px;line-height:1.75}
 #e-nota{color:var(--stamp)}
-.lado{align-self:start;position:sticky;top:calc(var(--pub,0px) + var(--edb,70px) + 16px);display:flex;flex-direction:column;gap:0}
+.lado{align-self:start;display:flex;flex-direction:column;gap:0}
 .guia{margin-top:22px;border:2px solid var(--ink);background:var(--paper2);padding:14px 16px;font-size:13.5px}
 .guia h3{margin:0 0 8px;font:700 15px "Old Standard TT",Georgia,serif}
 .guia dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:baseline}
@@ -112,13 +112,13 @@ dialog .msg{min-height:1.4em;margin:10px 0 0;font-size:13px;color:var(--stamp)}
 .msg.ok{color:var(--ok)}
 .ayuda{font-size:13.5px;color:var(--grey);margin:8px 0 0}
 .enlace{margin-top:6px;background:none;border:0;padding:0;color:var(--ink);font:13.5px "Libre Baskerville",Georgia,serif;text-decoration:underline;cursor:pointer}
-.publicar{position:sticky;top:0;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding:10px 14px;border:2px solid var(--ink);background:var(--paper2);font-size:14px}
+.publicar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding:10px 14px;border:2px solid var(--ink);background:var(--paper2);font-size:14px}
 .publicar.ok{border-color:var(--ok)}.publicar.pendiente{border-color:var(--warn)}.publicar.error{border-color:var(--stamp)}
 dialog.ancho{width:min(560px,calc(100vw - 32px))}
 dialog hr{margin:22px 0 14px;border:0;border-top:2px solid var(--ink)}
 dialog h3{margin:0;font:700 18px "Old Standard TT",Georgia,serif}
 dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
-.ed-barra{top:var(--pub,0px)}
+.ed-pie{display:flex;justify-content:flex-end;align-items:center;gap:14px;flex-wrap:wrap;margin-top:14px}
 /* ---------- mensajes del día ---------- */
 .m-hoy{margin:16px 0 0;padding:14px 18px;border-left:5px solid var(--stamp);background:var(--paper2);font-size:15px}
 .m-hoy q{font-style:italic}
@@ -263,6 +263,7 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
           <label for="e-cuerpo">Texto de la columna</label>
           <span class="desc">Deja una línea en blanco entre párrafos. Las marcas de la derecha dan formato a intertítulos, citas y cursivas.</span>
           <textarea id="e-cuerpo" spellcheck="true"></textarea>
+          <div class="ed-pie"><span class="estado" id="ed-estado2" aria-hidden="true"></span><button class="btn osc" id="ed-guardar2" type="button">Guardar cambios</button></div>
         </div>
       </div>
       <aside class="lado">
