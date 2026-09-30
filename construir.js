@@ -12,6 +12,10 @@ const SALIDA=path.join(RAIZ,'sitio');
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const parrafos=txt=>String(txt||'').trim().split(/\n\s*\n/).filter(Boolean).map(p=>`<p>${esc(p.replace(/\s*\n\s*/g,' '))}</p>`).join('\n');
 const recorte=(t,n)=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length<=n?t:t.slice(0,t.lastIndexOf(' ',n)).replace(/[,;:.]$/,'')+'…';};
+// Ícono del título: la plumilla que va dejando un sendero punteado
+const NIB='<path d="M22 6 L42 6 L47 28 C45 40 38 49 32 59 C26 49 19 40 17 28 Z" fill="#1b1a17"/><line x1="32" y1="59" x2="32" y2="36" stroke="#dcd8cc" stroke-width="3"/><circle cx="32" cy="31" r="4" fill="#dcd8cc"/>';
+const ICONO_SVG=(extra='')=>`<svg${extra} viewBox="0 0 64 64" aria-hidden="true"><path d="M6 58 C18 58 16 42 28 42 C38 42 38 30 42 24" fill="none" stroke="#9c2a22" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 6"/><g transform="translate(58 4) rotate(35) scale(0.5) translate(-32 -6)">${NIB}</g></svg>`;
+const ICONO=ICONO_SVG(' class="ico"');
 const flecha=d=>`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="${d}"/></svg>`;
 
 const ordenar=cols=>cols.sort((a,b)=>((a.anio||9999)-(b.anio||9999))||((a.mes||0)-(b.mes||0))||a.titulo.localeCompare(b.titulo,'es'));
@@ -72,8 +76,8 @@ async function construir(opciones={}){
     const canon=URL_SITIO?`${URL_SITIO}/${ruta==='index.html'?'':ruta}`:'';
     const nav=NAV.map(([h,t])=>`<a href="${pre}${h}"${h===ruta?' aria-current="page"':''}>${t}</a>`).join('');
     const mast=portada
-      ?`<header class="mast"><h1 class="nombre">${esc(CFG.titulo)}</h1><p class="dia" id="mensaje-dia"${msjHoy||CFG.subtitulo?'':' hidden'}>${esc(msjHoy?msjHoy.texto:CFG.subtitulo)}</p>${presentacion?'<button type="button" class="abrir-pres" id="abrir-pres" aria-haspopup="dialog">Leer la presentación</button>':''}</header>`
-      :`<header class="mast chica"><a class="nombre" href="${pre}index.html">${esc(CFG.titulo)}</a></header>`;
+      ?`<header class="mast"><h1 class="nombre">${ICONO}${esc(CFG.titulo)}</h1><p class="dia" id="mensaje-dia"${msjHoy||CFG.subtitulo?'':' hidden'}>${esc(msjHoy?msjHoy.texto:CFG.subtitulo)}</p>${presentacion?'<button type="button" class="abrir-pres" id="abrir-pres" aria-haspopup="dialog">Leer la presentación</button>':''}</header>`
+      :`<header class="mast chica"><a class="nombre" href="${pre}index.html">${ICONO}${esc(CFG.titulo)}</a></header>`;
     const desc=descripcion||CFG.descripcion;
     return `<!DOCTYPE html>
 <html lang="es">
@@ -88,6 +92,7 @@ ${canon?`<link rel="canonical" href="${esc(canon)}">\n<meta property="og:url" co
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:locale" content="es_CL">
 ${FUENTES}
+<link rel="icon" href="${pre}favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="${pre}estilos.css">
 ${extraHead}
 ${ANALITICA}
@@ -113,6 +118,7 @@ ${scripts}
   const escribir=(ruta,html)=>fs.writeFileSync(path.join(SALIDA,ruta),html);
   fs.copyFileSync(path.join(RAIZ,'plantilla','estilos.css'),path.join(SALIDA,'estilos.css'));
   fs.copyFileSync(path.join(RAIZ,'plantilla','carrusel.js'),path.join(SALIDA,'carrusel.js'));
+  fs.writeFileSync(path.join(SALIDA,'favicon.svg'),ICONO_SVG(' xmlns="http://www.w3.org/2000/svg"'));
 
   // ---------- Portada ----------
   const tarjetas=columnas.map((c,i)=>`<li class="slide"><article class="card k${i%4}">${c.anio?`<span class="yr">${esc(c.anio)}</span>`:''}${c.tema?`<span class="tag">${esc(c.tema)}</span>`:''}<h3>${esc(c.titulo)}</h3><p${c.bajada?' class="bj"':''}>${esc(recorte(c.resumen,230))}</p><a class="more" href="${urlCol(c)}">Leer columna</a></article></li>`).join('\n');

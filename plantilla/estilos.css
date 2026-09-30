@@ -157,3 +157,5 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
 [hidden]{display:none!important}
 .mast p.dia{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
 @media (max-width:640px){.portada .mast p.dia{-webkit-line-clamp:2;line-clamp:2}}
+/* Ícono del título (la pluma que hace el camino) */
+.nombre .ico{display:inline-block;height:.82em;width:.82em;vertical-align:-.08em;margin-right:.14em}
