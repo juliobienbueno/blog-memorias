@@ -26,6 +26,7 @@ a{color:inherit}
 .btn.osc{background:var(--ink);color:var(--paper)}
 .btn.chico{min-height:32px;padding:0 10px;font-size:13px;box-shadow:3px 3px 0 var(--ink);border-width:2px}
 .btn.plano{box-shadow:none;border-width:2px;min-height:36px}
+.btn[aria-current="page"]{background:var(--ink);color:var(--paper);cursor:default}
 .btn.peligro{border-color:var(--stamp);color:var(--stamp);box-shadow:3px 3px 0 var(--stamp)}
 .btn.peligro.si{background:var(--stamp);color:#fff}
 :focus-visible{outline:3px solid var(--stamp);outline-offset:2px}
@@ -148,7 +149,7 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
     <h1>Camino al andar<small>Panel de columnas</small></h1>
     <div class="acciones" id="acciones" hidden>
       <span class="quien" id="quien"></span>
-      <a class="btn osc" href="/" target="_blank" rel="noopener">Ver el sitio ↗</a>
+      <a class="btn plano" href="/" target="_blank" rel="noopener">Ver el sitio ↗</a>
       <a class="btn plano" id="b-columnas" href="#">Columnas</a>
       <a class="btn plano" id="b-mensajes" href="#mensajes">Mensajes del día</a>
       <button class="btn plano" id="b-ajustes" type="button">Ajustes</button>

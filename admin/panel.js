@@ -109,6 +109,9 @@ addEventListener('beforeunload',e=>{if(cuentaPub>0||sucio){e.preventDefault();e.
 function mostrar(v){
   for(const id of ['v-acceso','v-lista','v-editor','v-mensajes'])$('#'+id).hidden=id!==v;
   $('#acciones').hidden=v==='v-acceso';
+  // la sección en la que estás queda marcada en oscuro
+  const marcado=v==='v-mensajes'?'#b-mensajes':'#b-columnas';
+  for(const b of ['#b-columnas','#b-mensajes'])b===marcado?$(b).setAttribute('aria-current','page'):$(b).removeAttribute('aria-current');
 }
 function formAcceso(f){for(const id of ['f-entrar','f-recuperar','f-nueva'])$('#'+id).hidden=id!==f;mostrar('v-acceso');const i=$('#'+f+' input');if(i)i.focus();}
 function salirForzado(){guardarSesion(null);formAcceso('f-entrar');$('#a-msg').textContent='Tu sesión terminó. Vuelve a entrar.';}
