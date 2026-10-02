@@ -140,6 +140,20 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
 .m-lista .acc{display:flex;gap:8px;flex-wrap:wrap}
 .m-lista .guardado{background:#e3ead9}
 .m-lista .vacio{display:block}
+.m-semanas{display:flex;flex-direction:column;gap:14px}
+.m-semana{border:2px solid var(--ink);background:var(--paper2);padding:14px 16px}
+.m-semana.actual{border-width:3px;box-shadow:5px 5px 0 var(--ink)}
+.m-semana h4{margin:0 0 10px;font:700 16px "Old Standard TT",Georgia,serif;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.m-semana h4 small{font:italic 400 13px "Libre Baskerville",Georgia,serif;color:var(--grey)}
+.m-mitades{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.m-mitades label{display:block;font:700 13px "Old Standard TT",Georgia,serif;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.m-mitades label .hoy{color:var(--stamp);text-transform:none;letter-spacing:0}
+.m-mitades textarea{width:100%;min-height:68px;padding:8px 10px;border:1px solid var(--grey);background:var(--field);font:15px/1.5 "Libre Baskerville",Georgia,serif;color:var(--ink);resize:vertical}
+.m-mitades textarea.guardado{background:#e3ead9}
+.m-semana .pie{display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:10px;font-size:13px}
+#m-mas{margin-top:14px}
+.m-lista{margin-top:12px}
+@media (max-width:760px){.m-mitades{grid-template-columns:1fr}}
 @media (max-width:760px){.m-lista>li,.m-prox li{grid-template-columns:1fr;gap:6px}}
 </style>
 </head>
@@ -223,25 +237,29 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
   <section id="v-mensajes" hidden>
     <div class="barra"><div><h2>Mensajes del día</h2><span class="cuenta" id="m-cuenta"></span></div></div>
     <p class="m-hoy" id="m-hoy"></p>
+    <p class="nota">Cada semana lleva <b>dos mensajes</b>: uno de <b>lunes a miércoles</b> y otro de <b>jueves a domingo</b>. Si una mitad queda vacía, sigue el último mensaje que hubo. Para una fecha especial (un aniversario, una fiesta) agrega abajo un <b>mensaje para un día</b>: ese día reemplaza al de la semana. Conviene que sean breves: en el celular se ven hasta dos líneas.</p>
+
+    <h3 class="m-tit">Semanas</h3>
+    <div class="m-semanas" id="m-semanas"><p class="vacio">Cargando…</p></div>
+    <button class="btn plano" type="button" id="m-mas">Mostrar más semanas</button>
+
+    <h3 class="m-tit">Mensaje para un día especial</h3>
     <form class="m-nuevo" id="f-msj">
       <div class="campo">
-        <label for="m-texto">Nuevo mensaje</label>
-        <textarea id="m-texto" rows="3" maxlength="400" required placeholder="Buenos días…"></textarea>
+        <label for="m-texto">Mensaje</label>
+        <textarea id="m-texto" rows="2" maxlength="400" required placeholder="Hoy cumple 80 años el autor…"></textarea>
         <span class="desc" id="m-largo"></span>
       </div>
       <div class="m-fila">
-        <div class="campo"><label for="m-fecha">Fecha <span class="opc">(opcional)</span></label><input id="m-fecha" type="date"></div>
-        <button class="btn osc" type="submit">Agregar mensaje</button>
+        <div class="campo"><label for="m-fecha">Día</label><input id="m-fecha" type="date" required></div>
+        <button class="btn osc" type="submit">Agregar</button>
       </div>
       <p class="msg" id="m-msg" role="alert"></p>
     </form>
-    <p class="nota">Los mensajes <b>sin fecha</b> se turnan: cada día sale uno distinto, y cuando se acaban vuelven a empezar. Si a un mensaje le pones <b>fecha</b>, sale solo ese día (por ejemplo, para un aniversario o una fiesta). El cambio de día es a medianoche, hora de Chile. Conviene que sean breves: en el celular se ven hasta dos líneas.</p>
+    <ul class="m-lista" id="m-lista"></ul>
 
     <h3 class="m-tit">Los próximos 7 días</h3>
     <ol class="m-prox" id="m-prox"></ol>
-
-    <h3 class="m-tit">Todos los mensajes</h3>
-    <ul class="m-lista" id="m-lista"><li class="vacio">Cargando…</li></ul>
   </section>
 
   <!-- ===== Editor ===== -->

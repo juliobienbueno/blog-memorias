@@ -6,11 +6,13 @@
 create table if not exists public.mensajes (
   id              bigint generated always as identity primary key,
   texto           text not null check (length(texto) between 1 and 400),
-  fecha           date,                       -- opcional: si tiene fecha, sale solo ese día
+  fecha           date,                       -- día especial, o lunes/jueves en que empieza la media semana
+  tipo            text not null default 'dia' check (tipo in ('dia','bloque')),
   actualizado_por text,
   creado          timestamptz not null default now()
 );
 create index if not exists mensajes_fecha on public.mensajes (fecha);
+create unique index if not exists mensajes_bloque_unico on public.mensajes (fecha) where tipo = 'bloque';
 
 -- Cualquiera puede leer (se muestran en el sitio); solo usuarios con sesión pueden escribir.
 alter table public.mensajes enable row level security;

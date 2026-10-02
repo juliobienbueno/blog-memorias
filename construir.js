@@ -40,7 +40,7 @@ async function traerMensajes(CFG){
   const url=(process.env.SUPABASE_URL||CFG.supabaseUrl||'').replace(/\/$/,'');
   const clave=process.env.SUPABASE_KEY||CFG.supabaseKey;
   try{
-    const r=await fetch(`${url}/rest/v1/mensajes?select=id,texto,fecha&order=id`,{headers:{apikey:clave}});
+    const r=await fetch(`${url}/rest/v1/mensajes?select=*&order=id`,{headers:{apikey:clave}});
     if(!r.ok)throw new Error(`Supabase respondió ${r.status}`);
     return await r.json();
   }catch(e){console.warn('Aviso: no se pudieron leer los mensajes del día ('+e.message+'). Se usa el subtítulo de sitio.config.json.');return [];}
@@ -52,11 +52,14 @@ async function construir(opciones={}){
   const columnas=ordenar(opciones.local
     ?JSON.parse(fs.readFileSync(opciones.local,'utf8').replace(/^\uFEFF/,''))
     :await traerColumnas(CFG));
-  // Mensajes del día: van todos los sin fecha y los con fecha desde ayer en adelante;
-  // el navegador elige el de hoy (hora de Chile), así cambia cada día sin volver a publicar.
-  const ayer=N.hoyChile(new Date(Date.now()-864e5));
-  const mensajes=(opciones.mensajes?JSON.parse(fs.readFileSync(opciones.mensajes,'utf8')):opciones.local?[]:await traerMensajes(CFG))
-    .filter(m=>m&&String(m.texto||'').trim()&&(!m.fecha||m.fecha>=ayer)).map(m=>({id:m.id,texto:String(m.texto).trim(),fecha:m.fecha||null}));
+  // Mensajes del día: van a la portada los de días especiales desde ayer, los de media semana
+  // de las últimas semanas (más el último anterior, por si una media semana queda vacía) y los
+  // antiguos sin fecha. El navegador elige el de hoy (hora de Chile), sin volver a publicar.
+  const ayer=N.hoyChile(new Date(Date.now()-864e5)),desdeBloques=N.sumarDias(N.inicioBloque(ayer),-28);
+  const todosMsj=(opciones.mensajes?JSON.parse(fs.readFileSync(opciones.mensajes,'utf8')):opciones.local?[]:await traerMensajes(CFG))
+    .filter(m=>m&&String(m.texto||'').trim()).map(m=>({id:m.id,texto:String(m.texto).trim(),fecha:m.fecha||null,tipo:m.tipo==='bloque'?'bloque':'dia'}));
+  const viejoBloque=todosMsj.filter(m=>m.tipo==='bloque'&&m.fecha<desdeBloques).sort((a,b)=>a.fecha<b.fecha?-1:1).pop();
+  const mensajes=todosMsj.filter(m=>!m.fecha||(m.tipo==='dia'?m.fecha>=ayer:m.fecha>=desdeBloques)||m===viejoBloque);
   const msjHoy=N.mensajeDelDia(mensajes,N.hoyChile());
   if(!columnas.length)console.warn('Aviso: no hay columnas todavía. Se publica el sitio vacío (con el panel en /admin/).');
   columnas.forEach(c=>{c.resumen=c.bajada||recorte(c.texto,200);});
@@ -178,8 +181,14 @@ ${cuerpoHtml}
 
   // ---------- El autor (texto en autor.md) ----------
   const autorTxt=fs.existsSync(path.join(RAIZ,'autor.md'))?fs.readFileSync(path.join(RAIZ,'autor.md'),'utf8').replace(/\r\n?/g,'\n'):'';
-  escribir('el-autor.html',pagina({ruta:'el-autor.html',titulo:'El autor',descripcion:`Sobre ${CFG.autor}.`,cuerpo:`
-<article class="columna"><h1>${esc(CFG.autor)}</h1><div class="cuerpo">${parrafos(autorTxt||'Texto sobre el autor.')}</div></article>`}));
+  // Si hay foto (plantilla/autor.jpg), el primer párrafo de autor.md es su pie de foto y el resto va debajo.
+  const hayFoto=fs.existsSync(path.join(RAIZ,'plantilla','autor.jpg'));
+  if(hayFoto)fs.copyFileSync(path.join(RAIZ,'plantilla','autor.jpg'),path.join(SALIDA,'autor.jpg'));
+  const [pie,...restoAutor]=autorTxt.trim().split(/\n\s*\n/);
+  escribir('el-autor.html',pagina({ruta:'el-autor.html',titulo:'El autor',descripcion:hayFoto&&pie?recorte(pie,160):`Sobre ${CFG.autor}.`,cuerpo:`
+<article class="columna autor"><h1>${esc(CFG.autor)}</h1>
+${hayFoto?`<figure class="foto-autor"><img src="autor.jpg" alt="${esc(pie||CFG.autor)}" width="720" height="1378" decoding="async"><figcaption>${esc((pie||'').replace(/\s*\n\s*/g,' '))}</figcaption></figure>
+<div class="cuerpo">${parrafos(restoAutor.join('\n\n'))}</div>`:`<div class="cuerpo">${parrafos(autorTxt||'Texto sobre el autor.')}</div>`}</article>`}));
 
   // ---------- Buscar (en el navegador, sin servidor) ----------
   const indice=columnas.map(c=>({t:c.titulo,a:c.anio||'',f:c.fecha||'',r:recorte(c.resumen,200),u:urlCol(c),x:`${c.bajada||''} ${c.tema||''} ${c.texto||''}`}));

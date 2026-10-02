@@ -33,7 +33,9 @@ function traducir(m){
   if(/rate limit|too many/i.test(m))return 'Demasiados intentos. Espera unos minutos.';
   if(/jwt expired|invalid jwt/i.test(m))return 'Tu sesión terminó. Vuelve a entrar.';
   if(/row-level security|permission denied/i.test(m))return 'No tienes permiso para hacer esto. Vuelve a entrar.';
+  if(/mensajes\.tipo|column.*tipo/i.test(m)&&/does not exist|could not find/i.test(m))return 'Falta actualizar la tabla de mensajes en Supabase: ejecuta el archivo supabase/mensajes-semanas.sql en el SQL Editor.';
   if(/mensajes/.test(m)&&/does not exist|could not find the table|PGRST205/i.test(m))return 'Falta crear la tabla de mensajes en Supabase: ejecuta el archivo supabase/mensajes.sql en el SQL Editor.';
+  if(/mensajes_bloque_unico|duplicate key/i.test(m))return 'Otra persona guardó esa media semana recién. Recarga la página para ver su mensaje.';
   if(/failed to fetch|networkerror/i.test(m))return 'No hay conexión con el servidor. Revisa tu internet.';
   return m;
 }
@@ -76,7 +78,7 @@ const DB={
   borrar:id=>rest('columnas?id=eq.'+encodeURIComponent(id),{metodo:'DELETE'}),
   todas:async()=>{const t=[];for(let d=0;;d+=500){const l=await rest(`columnas?select=*&order=id&offset=${d}&limit=500`);t.push(...l);if(l.length<500)return t;}},
   ajuste:async k=>((await rest('ajustes?select=valor&clave=eq.'+k))[0]||{}).valor||'',
-  mensajes:()=>rest('mensajes?select=id,texto,fecha,actualizado_por&order=id'),
+  mensajes:()=>rest('mensajes?select=id,texto,fecha,tipo,actualizado_por&order=id'),
   nuevoMensaje:m=>rest('mensajes',{metodo:'POST',cuerpo:[m],prefer:'return=representation'}),
   cambiarMensaje:async(id,m)=>(await rest('mensajes?id=eq.'+id,{metodo:'PATCH',cuerpo:m,prefer:'return=representation'}))[0],
   borrarMensaje:id=>rest('mensajes?id=eq.'+id,{metodo:'DELETE'}),
@@ -103,7 +105,7 @@ async function publicar(){
   }catch(e){barraPub('No se pudo avisar a Vercel: '+traducir(e.message),'error');}
 }
 $('#pub-ahora').onclick=publicar;
-addEventListener('beforeunload',e=>{if(cuentaPub>0||sucio){e.preventDefault();e.returnValue='';}});
+addEventListener('beforeunload',e=>{if(cuentaPub>0||sucio||[...document.querySelectorAll('#m-semanas textarea')].some(t=>t.value!==t.dataset.orig)){e.preventDefault();e.returnValue='';}});
 
 // ================= Vistas =================
 function mostrar(v){
@@ -322,36 +324,84 @@ addEventListener('hashchange',()=>{
 });
 
 // ================= Mensajes del día =================
-let msjs=[];
+// Cada semana tiene dos mensajes (tipo "bloque"): lunes a miércoles (fecha = el lunes) y
+// jueves a domingo (fecha = el jueves). Además hay mensajes para un día especial (tipo "dia").
+let msjs=[],semanasVisibles=4;
 const LARGO_IDEAL=160;
 const diaLargo=iso=>{const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d,12)).toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'});};
-const sumarDias=(iso,n)=>{const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10);};
+const diaCorto=iso=>{const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d,12)).toLocaleDateString('es-CL',{day:'numeric',month:'long',timeZone:'UTC'});};
+const mayus=t=>t.replace(/^./,c=>c.toUpperCase());
+const sumarDias=N.sumarDias;
+const lunesDe=iso=>{const b=N.inicioBloque(iso);const [y,m,d]=b.split('-').map(Number);return new Date(Date.UTC(y,m-1,d)).getUTCDay()===1?b:sumarDias(b,-3);};
+const bloque=f=>msjs.find(x=>x.tipo==='bloque'&&x.fecha===f);
 async function abrirMensajes(){
   mostrar('v-mensajes');scrollTo(0,0);
   try{msjs=await DB.mensajes();pintarMensajes();}
-  catch(err){$('#m-lista').innerHTML=`<li class="vacio">${esc(err.message)}</li>`;$('#m-hoy').textContent='';$('#m-prox').innerHTML='';}
+  catch(err){$('#m-semanas').innerHTML=`<p class="vacio">${esc(err.message)}</p>`;$('#m-hoy').textContent='';$('#m-prox').innerHTML='';$('#m-lista').innerHTML='';}
 }
 function pintarMensajes(){
   const hoy=N.hoyChile(),m=N.mensajeDelDia(msjs,hoy);
-  const sinFecha=msjs.filter(x=>!x.fecha).length;
-  $('#m-cuenta').textContent=` · ${msjs.length} mensaje${msjs.length===1?'':'s'}${msjs.length?` · ${sinFecha} se turnan`:''}`;
-  $('#m-hoy').innerHTML=m?`Hoy, ${esc(diaLargo(hoy))}, se muestra: <q>${esc(m.texto)}</q>`:'Todavía no hay mensajes: bajo el título de la portada no aparece nada. Agrega el primero aquí abajo.';
-  $('#m-prox').innerHTML=msjs.length?[...Array(7)].map((_,i)=>{const d=sumarDias(hoy,i),x=N.mensajeDelDia(msjs,d);
-    return `<li><b>${i===0?'Hoy':i===1?'Mañana':esc(diaLargo(d).replace(/ de \d{4}$/,'').replace(/^./,c=>c.toUpperCase()))}</b><span>${x?esc(x.texto):'<i>(nada)</i>'}${x&&x.fecha?' <span class="chip">con fecha</span>':''}</span></li>`;}).join(''):'';
-  const orden=[...msjs].sort((a,b)=>(a.fecha?0:1)-(b.fecha?0:1)||String(a.fecha||'').localeCompare(String(b.fecha||''))||a.id-b.id);
-  $('#m-lista').innerHTML=orden.length?orden.map(x=>`<li data-id="${x.id}">
+  const nb=msjs.filter(x=>x.tipo==='bloque').length,nd=msjs.filter(x=>x.tipo!=='bloque').length;
+  $('#m-cuenta').textContent=` · ${nb} de semana · ${nd} de día especial`;
+  $('#m-hoy').innerHTML=m?`Hoy, ${esc(diaLargo(hoy))}, se muestra: <q>${esc(m.texto)}</q>`:'Todavía no hay mensajes: bajo el título de la portada no aparece nada. Escribe el de esta semana aquí abajo.';
+  pintarSemanas(hoy);pintarEspeciales(hoy);
+  $('#m-prox').innerHTML=[...Array(7)].map((_,i)=>{const d=sumarDias(hoy,i),x=N.mensajeDelDia(msjs,d);
+    return `<li><b>${i===0?'Hoy':i===1?'Mañana':esc(mayus(diaLargo(d).replace(/ de \d{4}$/,'')))}</b><span>${x?esc(x.texto):'<i>(nada)</i>'}${x&&x.tipo!=='bloque'&&x.fecha?' <span class="chip">día especial</span>':''}</span></li>`;}).join('');
+}
+// Una tarjeta por semana, desde la actual, con sus dos mitades
+function pintarSemanas(hoy){
+  const lunes0=lunesDe(hoy),cont=$('#m-semanas');
+  // conserva lo que se esté escribiendo sin guardar
+  const borradores={};cont.querySelectorAll('textarea[data-f]').forEach(t=>{if(t.dataset.orig!==t.value)borradores[t.dataset.f]=t.value;});
+  cont.innerHTML=[...Array(semanasVisibles)].map((_,k)=>{
+    const lun=sumarDias(lunes0,7*k),jue=sumarDias(lun,3),dom=sumarDias(lun,6);
+    const mitad=(f,nombre,desde,hasta)=>{const r=bloque(f),v=r?r.texto:'',ahora=hoy>=desde&&hoy<=hasta;
+      return `<div><label for="mb-${f}">${nombre}${ahora?' <span class="hoy">· se está mostrando</span>':''}</label>
+        <textarea id="mb-${f}" data-f="${f}" data-orig="${esc(v)}" maxlength="400" placeholder="${r?'':'Sin mensaje (sigue el anterior)'}">${esc(borradores[f]??v)}</textarea></div>`;};
+    return `<div class="m-semana${k===0?' actual':''}" data-lun="${lun}">
+      <h4>${k===0?'Esta semana':k===1?'La próxima semana':'Semana'} <small>del lunes ${esc(diaCorto(lun))} al domingo ${esc(diaCorto(dom))}</small></h4>
+      <div class="m-mitades">${mitad(lun,'Lunes a miércoles',lun,sumarDias(lun,2))}${mitad(jue,'Jueves a domingo',jue,dom)}</div>
+      <div class="pie"><span class="estado" data-estado></span><button class="btn chico" type="button" data-guardar-semana>Guardar semana</button></div></div>`;
+  }).join('');
+}
+$('#m-mas').onclick=()=>{semanasVisibles+=4;pintarSemanas(N.hoyChile());};
+$('#m-semanas').addEventListener('input',e=>{
+  const sem=e.target.closest('.m-semana');if(!sem)return;
+  const sucia=[...sem.querySelectorAll('textarea')].some(t=>t.value!==t.dataset.orig);
+  const est=sem.querySelector('[data-estado]');est.textContent=sucia?'Cambios sin guardar':'';est.className='estado'+(sucia?' sucio':'');
+});
+$('#m-semanas').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-guardar-semana]');if(!b)return;
+  const sem=b.closest('.m-semana'),est=sem.querySelector('[data-estado]');
+  b.disabled=true;est.className='estado';est.textContent='Guardando…';let cambio=false;
+  try{
+    for(const t of sem.querySelectorAll('textarea')){
+      const f=t.dataset.f,v=t.value.replace(/\s+/g,' ').trim(),r=bloque(f);
+      if(r&&!v){await DB.borrarMensaje(r.id);msjs=msjs.filter(x=>x!==r);cambio=true;}
+      else if(r&&v!==r.texto){Object.assign(r,await DB.cambiarMensaje(r.id,{texto:v,actualizado_por:sesion.email}));cambio=true;}
+      else if(!r&&v){const [n]=await DB.nuevoMensaje({texto:v,fecha:f,tipo:'bloque',actualizado_por:sesion.email});msjs.push(n);cambio=true;}
+      t.dataset.orig=v;t.value=v;t.classList.add('guardado');
+    }
+    est.className='estado ok';est.textContent=cambio?'Guardado.':'Sin cambios.';
+    if(cambio){hayCambios();setTimeout(pintarMensajes,900);}
+  }catch(err){est.className='estado error';est.textContent='No se guardó: '+err.message;}
+  finally{b.disabled=false;}
+});
+// Mensajes para un día especial (y los antiguos sin fecha, si quedó alguno)
+function pintarEspeciales(hoy){
+  const lista=msjs.filter(x=>x.tipo!=='bloque').sort((a,b)=>(a.fecha?0:1)-(b.fecha?0:1)||String(b.fecha||'').localeCompare(String(a.fecha||''))||a.id-b.id);
+  $('#m-lista').innerHTML=lista.map(x=>`<li data-id="${x.id}">
     <div><textarea data-c="texto" maxlength="400" aria-label="Texto del mensaje">${esc(x.texto)}</textarea>
-      ${x.fecha&&x.fecha<hoy?'<span class="chip">esa fecha ya pasó</span>':''}${x.texto.length>LARGO_IDEAL?' <span class="chip">largo: en el celular puede quedar cortado</span>':''}</div>
-    <input data-c="fecha" type="date" value="${esc(x.fecha||'')}" aria-label="Fecha (opcional)" title="Déjala vacía para que se turne con los demás">
-    <div class="acc"><button class="btn chico" data-guardar type="button">Guardar</button><button class="btn chico peligro" data-quitar type="button">Quitar</button></div></li>`).join('')
-    :'<li class="vacio">Aún no hay mensajes.</li>';
+      ${x.fecha&&x.fecha<hoy?'<span class="chip">ese día ya pasó</span>':''}${!x.fecha?'<span class="chip">sin fecha: se usa solo si no hay mensajes de semana</span>':''}${x.texto.length>LARGO_IDEAL?' <span class="chip">largo: en el celular puede quedar cortado</span>':''}</div>
+    <input data-c="fecha" type="date" value="${esc(x.fecha||'')}" aria-label="Día">
+    <div class="acc"><button class="btn chico" data-guardar type="button">Guardar</button><button class="btn chico peligro" data-quitar type="button">Quitar</button></div></li>`).join('');
 }
 function largoNuevo(){const n=$('#m-texto').value.trim().length;$('#m-largo').textContent=n?`${n} caracteres${n>LARGO_IDEAL?' · un poco largo: en el celular puede quedar cortado':''}`:'';}
 $('#m-texto').addEventListener('input',largoNuevo);
 $('#f-msj').addEventListener('submit',async e=>{
   e.preventDefault();const t=$('#m-texto').value.replace(/\s+/g,' ').trim(),f=$('#m-fecha').value||null,msg=$('#m-msg');msg.className='msg';msg.textContent='';
-  if(!t){msg.textContent='Escribe el mensaje.';return;}
-  try{const [r]=await DB.nuevoMensaje({texto:t,fecha:f,actualizado_por:sesion.email});msjs.push(r);
+  if(!t||!f){msg.textContent='Escribe el mensaje y elige el día.';return;}
+  try{const [r]=await DB.nuevoMensaje({texto:t,fecha:f,tipo:'dia',actualizado_por:sesion.email});msjs.push(r);
     $('#f-msj').reset();largoNuevo();pintarMensajes();msg.className='msg ok';msg.textContent='Mensaje agregado.';hayCambios();}
   catch(err){msg.textContent=err.message;}
 });
@@ -359,7 +409,7 @@ $('#m-lista').addEventListener('click',async e=>{
   const li=e.target.closest('li[data-id]');if(!li)return;const id=+li.dataset.id;
   if(e.target.closest('[data-guardar]')){
     const t=li.querySelector('[data-c=texto]').value.replace(/\s+/g,' ').trim(),f=li.querySelector('[data-c=fecha]').value||null;
-    if(!t){nota('error','El mensaje no puede quedar vacío. Usa «Quitar» para borrarlo.');return;}
+    if(!t){alertaMsj(li,'El mensaje no puede quedar vacío. Usa «Quitar» para borrarlo.');return;}
     try{const r=await DB.cambiarMensaje(id,{texto:t,fecha:f,actualizado_por:sesion.email});Object.assign(msjs.find(x=>x.id===id),r);
       li.querySelectorAll('textarea,input').forEach(x=>x.classList.add('guardado'));setTimeout(pintarMensajes,700);hayCambios();}
     catch(err){alertaMsj(li,err.message);}

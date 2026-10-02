@@ -161,3 +161,8 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
 .nombre .ico{display:inline-block;height:.82em;width:.82em;vertical-align:-.08em;margin-right:.14em}
 /* Más aire entre la bajada (y epígrafe o nota) y el comienzo del texto */
 .columna .cuerpo{margin-top:48px}
+/* Página "El autor": foto con pie de foto */
+.foto-autor{margin:22px 0 0;max-width:420px}
+.foto-autor img{display:block;width:100%;height:auto;border:3px solid var(--ink);box-shadow:8px 8px 0 var(--shadow);background:#cfcabd}
+.foto-autor figcaption{margin-top:16px;font-style:italic;font-size:16px;line-height:1.55;color:#3b3934}
+.autor .cuerpo:empty{display:none}
