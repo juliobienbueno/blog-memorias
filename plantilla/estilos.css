@@ -161,10 +161,11 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
 .nombre .ico{display:inline-block;height:.82em;width:.82em;vertical-align:-.08em;margin-right:.14em}
 /* Más aire entre la bajada (y epígrafe o nota) y el comienzo del texto */
 .columna .cuerpo{margin-top:48px}
-/* Página "El autor": foto a la izquierda (cabe en la pantalla, sin scroll) y texto al lado */
-.foto-autor{margin:22px 0 0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(18px,3vw,36px);align-items:center}
-.foto-autor img{display:block;height:clamp(240px,calc(100vh - 380px),520px);width:auto;max-width:42vw;object-fit:cover;border:3px solid var(--ink);box-shadow:8px 8px 0 var(--shadow);background:#cfcabd}
-.foto-autor figcaption{font-size:17px;line-height:1.7;color:#2c2a25}
-.foto-autor figcaption p{margin:0 0 1em}
-.foto-autor .pie{font-style:italic;font-size:18px;color:#3b3934}
-@media (max-width:560px){.foto-autor{gap:16px}.foto-autor img{height:auto;width:40vw;max-width:none;box-shadow:5px 5px 0 var(--shadow)}.foto-autor figcaption{font-size:15px}.foto-autor .pie{font-size:15px}}
+/* Página "El autor": foto a la izquierda (cabe en la pantalla, sin scroll); nombre y texto al lado */
+.ficha-autor{margin-top:clamp(18px,3vh,32px);display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(20px,4vw,48px);align-items:center}
+.ficha-autor img{display:block;height:clamp(260px,calc(100vh - 300px),600px);width:auto;max-width:44vw;object-fit:cover;border:3px solid var(--ink);box-shadow:8px 8px 0 var(--shadow);background:#cfcabd}
+.ficha-autor h1{margin:0 0 14px;padding-bottom:12px;border-bottom:3px double var(--ink)}
+.ficha-autor .txt{font-size:17px;line-height:1.7;color:#2c2a25}
+.ficha-autor .txt p{margin:0 0 1em}
+.ficha-autor .pie{font-style:italic;font-size:18px;color:#3b3934}
+@media (max-width:560px){.ficha-autor{gap:16px;align-items:start}.ficha-autor img{height:auto;width:42vw;max-width:none;box-shadow:5px 5px 0 var(--shadow)}.ficha-autor h1{font-size:26px;margin-bottom:10px;padding-bottom:8px}.ficha-autor .txt,.ficha-autor .pie{font-size:15px}}
