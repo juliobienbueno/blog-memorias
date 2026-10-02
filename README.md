@@ -81,7 +81,7 @@ Los .doc antiguos no se leen: ábrelos en Word → *Guardar como → .docx*.
 
 ## Textos y ajustes del sitio
 
-- `sitio.config.json`: título, subtítulo, autor, descripción, correo de contacto, `segundosPorTarjeta` (cuánto se queda quieto cada grupo del carrusel: segundos por tarjeta visible), `goatcounter` (visitas) y `urlSitio` (si luego usas un dominio propio).
+- `sitio.config.json`: título, subtítulo, autor, descripción, correo de contacto, `segundosPorTarjeta` (cuánto se queda quieto cada grupo del carrusel: segundos por tarjeta visible), `advertencia` (el aviso que va en todas las columnas, antes del texto; se le agrega la fecha de cada una), `goatcounter` (visitas) y `urlSitio` (si luego usas un dominio propio).
 - `presentacion.md`: texto de la ventana "Leer la presentación" de la portada.
 - `autor.md`: página "El autor".
 - `plantilla/`: diseño (estilos y carrusel).

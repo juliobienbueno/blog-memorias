@@ -174,6 +174,7 @@ d.addEventListener('click',e=>{if(e.target===d)d.close();});})();</script>`,
   ${c.bajada?`<p class="bajada">${esc(c.bajada)}</p>`:''}
   ${(c.epigrafe||[]).length?`<blockquote class="epigrafe">${c.epigrafe.map(e=>`<p>${e}</p>`).join('')}</blockquote>`:''}
   ${(c.notas||[]).map(n=>`<aside class="nota">${esc(n)}</aside>`).join('\n')}
+  ${CFG.advertencia?`<p class="advertencia" role="note">${esc(String(CFG.advertencia).trim().replace(/[.:]$/,''))}${c.fecha&&c.anio?`: <b>${esc(c.fecha.charAt(0).toLowerCase()+c.fecha.slice(1))}</b>`:''}.</p>`:''}
   <div class="cuerpo">
 ${cuerpoHtml}
   </div>

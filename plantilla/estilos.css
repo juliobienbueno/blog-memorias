@@ -191,3 +191,7 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
   .boton.claro{box-shadow:3px 3px 0 var(--ink)}
   .site-foot{margin-top:24px}
 }
+/* Advertencia común a todas las columnas (texto en sitio.config.json → advertencia) */
+.columna .advertencia{margin:28px 0 0;padding:12px 16px 12px 18px;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);font-size:15px;line-height:1.55;font-style:italic;color:#3b3934;text-align:center}
+.columna .advertencia b{font-style:normal;color:var(--ink)}
+.columna .advertencia+.cuerpo{margin-top:36px}

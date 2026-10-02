@@ -8,5 +8,6 @@
   "contacto": "caminoalandar.columnas@gmail.com",
   "supabaseUrl": "https://hrazdlvdykpjgxzsgzso.supabase.co",
   "supabaseKey": "sb_publishable_5EthjjnPVwx83LJZmUFCUw_6jiG0xMU",
-  "segundosPorTarjeta": 10
+  "segundosPorTarjeta": 10,
+  "advertencia": "Para evitar la distorsión del presentismo es indispensable tener en cuenta la fecha en que fue escrita esta columna"
 }
