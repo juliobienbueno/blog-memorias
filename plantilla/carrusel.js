@@ -1,6 +1,6 @@
 // Carrusel por grupos: muestra un grupo de columnas (4 en pantallas grandes, 3 en medianas,
 // 2 en celulares), lo deja quieto unos segundos por tarjeta y pasa al grupo siguiente.
-// Al terminar vuelve a empezar sin saltos. Se detiene mientras el mouse está encima.
+// Al terminar vuelve a empezar sin saltos. Se detiene un momento mientras se mueve el mouse encima.
 (function(){
   const carousel=document.getElementById('carousel');
   if(!carousel)return;
@@ -19,7 +19,7 @@
   reales.forEach(s=>{const c=s.cloneNode(true);c.setAttribute('aria-hidden','true');c.inert=true;track.appendChild(c);});
 
   const quieto=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let paso=0,vuelta=0,pv=2,x=0,hold=false,arrastre=null,salto=null,ultimo=null,visibleIdx=-1,espera=0;
+  let paso=0,vuelta=0,pv=2,x=0,foco=false,pausaHasta=0,arrastre=null,salto=null,ultimo=null,visibleIdx=-1,espera=0;
 
   const tiempoGrupo=()=>pv*segPorTarjeta*1000;
   function medir(){
@@ -53,11 +53,11 @@
         x=salto.desde+(salto.hasta-salto.desde)*e;
         if(k>=1){x=salto.hasta;salto=null;espera=0;}
         normalizar();pintar();
-      }else if(!hold&&!arrastre&&!quieto&&!document.hidden){
+      }else if(!enPausa(t)&&!arrastre&&!quieto&&!document.hidden){
         espera+=dt;
         if(espera>=tiempoGrupo())moverA(Math.round(x/paso)+pv);
       }
-      if(barra){barra.style.width=(salto?0:Math.min(espera/tiempoGrupo(),1)*100)+'%';avance.classList.toggle('pausa',hold||!!arrastre);}
+      if(barra){barra.style.width=(salto?0:Math.min(espera/tiempoGrupo(),1)*100)+'%';avance.classList.toggle('pausa',enPausa(t)||!!arrastre);}
     }
     requestAnimationFrame(cuadro);
   }
@@ -71,10 +71,14 @@
   document.getElementById('prev').onclick=()=>ir(-1);
   document.getElementById('next').onclick=()=>ir(1);
 
-  carousel.addEventListener('mouseenter',()=>hold=true);
-  carousel.addEventListener('mouseleave',()=>hold=false);
-  carousel.addEventListener('focusin',()=>hold=true);
-  carousel.addEventListener('focusout',()=>hold=false);
+  // Pausa: solo mientras se mueve el mouse sobre las tarjetas (y 4 s después), o mientras se recorre
+  // con el teclado. Si el mouse queda quieto encima, el carrusel sigue andando.
+  const PAUSA_MOUSE=4000;
+  function enPausa(t){return foco||t<pausaHasta;}
+  carousel.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')pausaHasta=performance.now()+PAUSA_MOUSE;});
+  carousel.addEventListener('mouseleave',()=>pausaHasta=0);
+  carousel.addEventListener('focusin',e=>{if(e.target.matches(':focus-visible'))foco=true;});
+  carousel.addEventListener('focusout',()=>foco=false);
   carousel.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')ir(-1);if(e.key==='ArrowRight')ir(1);});
 
   // Arrastrar con el dedo o el mouse: al soltar se acomoda en la tarjeta más cercana
