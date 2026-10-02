@@ -12,9 +12,8 @@ const SALIDA=path.join(RAIZ,'sitio');
 const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const parrafos=txt=>String(txt||'').trim().split(/\n\s*\n/).filter(Boolean).map(p=>`<p>${esc(p.replace(/\s*\n\s*/g,' '))}</p>`).join('\n');
 const recorte=(t,n)=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length<=n?t:t.slice(0,t.lastIndexOf(' ',n)).replace(/[,;:.]$/,'')+'…';};
-// Ícono del título: la plumilla que va dejando un sendero punteado
-const NIB='<path d="M22 6 L42 6 L47 28 C45 40 38 49 32 59 C26 49 19 40 17 28 Z" fill="#1b1a17"/><line x1="32" y1="59" x2="32" y2="36" stroke="#dcd8cc" stroke-width="3"/><circle cx="32" cy="31" r="4" fill="#dcd8cc"/>';
-const ICONO_SVG=(extra='')=>`<svg${extra} viewBox="0 0 64 64" aria-hidden="true"><path d="M6 58 C18 58 16 42 28 42 C38 42 38 30 42 24" fill="none" stroke="#9c2a22" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 6"/><g transform="translate(58 4) rotate(35) scale(0.5) translate(-32 -6)">${NIB}</g></svg>`;
+// Ícono del título: dos huellas (el andar)
+const ICONO_SVG=(extra='')=>`<svg${extra} viewBox="0 0 64 64" aria-hidden="true"><g transform="rotate(-14 22 42)"><ellipse cx="22" cy="38" rx="6.5" ry="10" fill="#1b1a17"/><ellipse cx="22" cy="54.5" rx="4.5" ry="4.5" fill="#1b1a17"/></g><g transform="rotate(12 42 20)"><ellipse cx="42" cy="16" rx="6.5" ry="10" fill="#9c2a22"/><ellipse cx="42" cy="32.5" rx="4.5" ry="4.5" fill="#9c2a22"/></g></svg>`;
 const ICONO=ICONO_SVG(' class="ico"');
 const flecha=d=>`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="${d}"/></svg>`;
 
@@ -131,7 +130,7 @@ ${scripts}
       <button class="btn" id="next" aria-label="Columna siguiente">${flecha('M7 3l7 7-7 7')}</button>
     </div>
   </div>
-  <div class="carousel" id="carousel" role="region" aria-roledescription="carrusel" aria-label="Columnas" data-velocidad="${+CFG.velocidadCarrusel||40}">
+  <div class="carousel" id="carousel" role="region" aria-roledescription="carrusel" aria-label="Columnas" data-segundos="${+CFG.segundosPorTarjeta||10}">
     <div class="viewport" id="viewport"><ul class="track" id="track">
 ${tarjetas}
     </ul></div>
