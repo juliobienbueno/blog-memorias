@@ -15,6 +15,10 @@ const recorte=(t,n)=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length
 // Ícono del título: dos huellas (el andar)
 const ICONO_SVG=(extra='')=>`<svg${extra} viewBox="0 0 64 64" aria-hidden="true"><g transform="rotate(-14 22 42)"><ellipse cx="22" cy="38" rx="6.5" ry="10" fill="#1b1a17"/><ellipse cx="22" cy="54.5" rx="4.5" ry="4.5" fill="#1b1a17"/></g><g transform="rotate(12 42 20)"><ellipse cx="42" cy="16" rx="6.5" ry="10" fill="#9c2a22"/><ellipse cx="42" cy="32.5" rx="4.5" ry="4.5" fill="#9c2a22"/></g></svg>`;
 const ICONO=ICONO_SVG(' class="ico"');
+// El correo va escrito al revés en el código y el navegador lo arma al cargar la página:
+// las personas lo ven normal, pero los programas que buscan correos para spam no lo encuentran.
+const correoOculto=c=>{const [u,d]=String(c).split('@'),r=t=>t.split('').reverse().join('');
+  return `<a class="correo" href="#contacto" data-u="${esc(r(u||''))}" data-d="${esc(r(d||''))}">${esc(u)} (arroba) ${esc(d||'')}</a>`;};
 const flecha=d=>`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="${d}"/></svg>`;
 
 const ordenar=cols=>cols.sort((a,b)=>((a.anio||9999)-(b.anio||9999))||((a.mes||0)-(b.mes||0))||a.titulo.localeCompare(b.titulo,'es'));
@@ -106,9 +110,10 @@ ${mast}
 <main>
 ${cuerpo}
 </main>
-<footer class="site-foot">${esc(CFG.titulo)}, columnas de ${esc(CFG.autor)}${CFG.contacto?`<span class="sep"> · </span><span class="contacto">Contacto: <a href="mailto:${esc(CFG.contacto)}">${esc(CFG.contacto)}</a></span>`:''}</footer>
+<footer class="site-foot">${esc(CFG.titulo)}, columnas de ${esc(CFG.autor)}${CFG.contacto?`<span class="sep"> · </span><span class="contacto">Contacto: ${correoOculto(CFG.contacto)}</span>`:''}</footer>
 </div>
-<script>try{history.scrollRestoration='manual'}catch(e){}addEventListener('pageshow',()=>{if(!location.hash)scrollTo(0,0)});</script>
+<script>try{history.scrollRestoration='manual'}catch(e){}addEventListener('pageshow',()=>{if(!location.hash)scrollTo(0,0)});
+document.querySelectorAll('a.correo').forEach(a=>{const r=s=>s.split('').reverse().join(''),e=r(a.dataset.u)+'@'+r(a.dataset.d);a.href='mailto:'+e;a.textContent=e;});</script>
 ${scripts}
 </body>
 </html>
