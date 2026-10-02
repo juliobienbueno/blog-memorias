@@ -191,7 +191,3 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
   .boton.claro{box-shadow:3px 3px 0 var(--ink)}
   .site-foot{margin-top:24px}
 }
-/* Línea de avance del carrusel: se llena hasta pasar al grupo siguiente; gris cuando está en pausa */
-.avance{height:3px;margin:2px 14px 0 8px;background:rgba(27,26,23,.12);overflow:hidden}
-.avance span{display:block;height:100%;width:0;background:var(--stamp)}
-.avance.pausa span{background:var(--grey)}

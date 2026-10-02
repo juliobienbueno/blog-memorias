@@ -142,7 +142,6 @@ ${scripts}
     <div class="viewport" id="viewport"><ul class="track" id="track">
 ${tarjetas}
     </ul></div>
-    <div class="avance" id="avance" aria-hidden="true"><span></span></div>
   </div>
 </section>
 ${presentacion?`<dialog class="pres" id="pres" aria-labelledby="pres-t">

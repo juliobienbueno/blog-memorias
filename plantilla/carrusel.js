@@ -1,13 +1,12 @@
 // Carrusel por grupos: muestra un grupo de columnas (4 en pantallas grandes, 3 en medianas,
 // 2 en celulares), lo deja quieto unos segundos por tarjeta y pasa al grupo siguiente.
-// Al terminar vuelve a empezar sin saltos. Se detiene un momento mientras se mueve el mouse encima.
+// Al terminar vuelve a empezar sin saltos. Avanza siempre, aunque el mouse esté encima.
 (function(){
   const carousel=document.getElementById('carousel');
   if(!carousel)return;
   const viewport=document.getElementById('viewport');
   const track=document.getElementById('track');
   const contador=document.getElementById('contador');
-  const avance=document.getElementById('avance'),barra=avance&&avance.firstElementChild;
   const segPorTarjeta=+carousel.dataset.segundos||10; // segundos de lectura por cada tarjeta visible
   const DUR_PASO=900;                                   // lo que dura el desplazamiento al siguiente grupo (ms)
   const reales=[...track.children];
@@ -19,7 +18,7 @@
   reales.forEach(s=>{const c=s.cloneNode(true);c.setAttribute('aria-hidden','true');c.inert=true;track.appendChild(c);});
 
   const quieto=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let paso=0,vuelta=0,pv=2,x=0,foco=false,pausaHasta=0,arrastre=null,salto=null,ultimo=null,visibleIdx=-1,espera=0;
+  let paso=0,vuelta=0,pv=2,x=0,foco=false,arrastre=null,salto=null,ultimo=null,visibleIdx=-1,espera=0;
 
   const tiempoGrupo=()=>pv*segPorTarjeta*1000;
   function medir(){
@@ -57,7 +56,6 @@
         espera+=dt;
         if(espera>=tiempoGrupo())moverA(Math.round(x/paso)+pv);
       }
-      if(barra){barra.style.width=(salto?0:Math.min(espera/tiempoGrupo(),1)*100)+'%';avance.classList.toggle('pausa',enPausa(t)||!!arrastre);}
     }
     requestAnimationFrame(cuadro);
   }
@@ -71,12 +69,9 @@
   document.getElementById('prev').onclick=()=>ir(-1);
   document.getElementById('next').onclick=()=>ir(1);
 
-  // Pausa: solo mientras se mueve el mouse sobre las tarjetas (y 4 s después), o mientras se recorre
-  // con el teclado. Si el mouse queda quieto encima, el carrusel sigue andando.
-  const PAUSA_MOUSE=4000;
-  function enPausa(t){return foco||t<pausaHasta;}
-  carousel.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')pausaHasta=performance.now()+PAUSA_MOUSE;});
-  carousel.addEventListener('mouseleave',()=>pausaHasta=0);
+  // Sigue avanzando aunque el mouse esté encima. Solo se detiene mientras alguien recorre
+  // las tarjetas con el teclado (tecla Tab), para no moverle la tarjeta que está leyendo.
+  function enPausa(){return foco;}
   carousel.addEventListener('focusin',e=>{if(e.target.matches(':focus-visible'))foco=true;});
   carousel.addEventListener('focusout',()=>foco=false);
   carousel.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')ir(-1);if(e.key==='ArrowRight')ir(1);});
@@ -97,7 +92,6 @@
   window.addEventListener('pointercancel',soltar);
   viewport.addEventListener('click',e=>{if(viewport.dataset.arrastrado){e.preventDefault();e.stopPropagation();}},true);
 
-  if(avance&&(quieto||N<=pv))avance.hidden=true;
   new ResizeObserver(medir).observe(carousel);
   medir();
   requestAnimationFrame(cuadro);
