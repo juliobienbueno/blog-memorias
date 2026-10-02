@@ -7,6 +7,7 @@
   const viewport=document.getElementById('viewport');
   const track=document.getElementById('track');
   const contador=document.getElementById('contador');
+  const avance=document.getElementById('avance'),barra=avance&&avance.firstElementChild;
   const segPorTarjeta=+carousel.dataset.segundos||10; // segundos de lectura por cada tarjeta visible
   const DUR_PASO=900;                                   // lo que dura el desplazamiento al siguiente grupo (ms)
   const reales=[...track.children];
@@ -56,6 +57,7 @@
         espera+=dt;
         if(espera>=tiempoGrupo())moverA(Math.round(x/paso)+pv);
       }
+      if(barra){barra.style.width=(salto?0:Math.min(espera/tiempoGrupo(),1)*100)+'%';avance.classList.toggle('pausa',hold||!!arrastre);}
     }
     requestAnimationFrame(cuadro);
   }
@@ -91,6 +93,7 @@
   window.addEventListener('pointercancel',soltar);
   viewport.addEventListener('click',e=>{if(viewport.dataset.arrastrado){e.preventDefault();e.stopPropagation();}},true);
 
+  if(avance&&(quieto||N<=pv))avance.hidden=true;
   new ResizeObserver(medir).observe(carousel);
   medir();
   requestAnimationFrame(cuadro);

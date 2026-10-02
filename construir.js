@@ -142,6 +142,7 @@ ${scripts}
     <div class="viewport" id="viewport"><ul class="track" id="track">
 ${tarjetas}
     </ul></div>
+    <div class="avance" id="avance" aria-hidden="true"><span></span></div>
   </div>
 </section>
 ${presentacion?`<dialog class="pres" id="pres" aria-labelledby="pres-t">
@@ -190,14 +191,16 @@ ${cuerpoHtml}
   const hayFoto=fs.existsSync(path.join(RAIZ,'plantilla','autor.jpg'));
   if(hayFoto)fs.copyFileSync(path.join(RAIZ,'plantilla','autor.jpg'),path.join(SALIDA,'autor.jpg'));
   const [pie,...restoAutor]=autorTxt.trim().split(/\n\s*\n/);
+  const susColumnas=columnas.length?`<aside class="sus-columnas" aria-label="Sus columnas">
+  <p><b>${columnas.length} columnas</b>${rango?` escritas entre ${rango}`:''}</p>
+  <div class="botones"><a class="boton" href="index.html">Ver todas las columnas</a><a class="boton claro" id="al-azar" href="${urlCol(columnas[0])}">Leer una al azar</a></div>
+</aside>`:'';
   escribir('el-autor.html',pagina({ruta:'el-autor.html',titulo:'El autor',descripcion:hayFoto&&pie?recorte(pie,160):`Sobre ${CFG.autor}.`,cuerpo:`
 <article class="columna autor">
 ${hayFoto?`<div class="ficha-autor"><img src="autor.jpg" alt="${esc(pie||CFG.autor)}" width="720" height="1378" decoding="async">
-<div class="txt"><h1>${esc(CFG.autor)}</h1><p class="pie">${esc((pie||'').replace(/\s*\n\s*/g,' '))}</p>${parrafos(restoAutor.join('\n\n'))}</div></div>`:`<h1>${esc(CFG.autor)}</h1><div class="cuerpo">${parrafos(autorTxt||'Texto sobre el autor.')}</div>`}
-${columnas.length?`<aside class="sus-columnas" aria-label="Sus columnas">
-  <p><b>${columnas.length} columnas</b>${rango?` escritas entre ${rango}`:''}</p>
-  <div class="botones"><a class="boton" href="index.html">Ver todas las columnas</a><a class="boton claro" id="al-azar" href="${urlCol(columnas[0])}">Leer una al azar</a></div>
-</aside>`:''}</article>`,scripts:columnas.length?`<script>(function(){const U=${JSON.stringify(columnas.map(urlCol))};const a=document.getElementById('al-azar');
+<div class="txt"><h1>${esc(CFG.autor)}</h1><p class="pie">${esc((pie||'').replace(/\s*\n\s*/g,' '))}</p>${parrafos(restoAutor.join('\n\n'))}</div>
+${susColumnas}</div>`:`<h1>${esc(CFG.autor)}</h1><div class="cuerpo">${parrafos(autorTxt||'Texto sobre el autor.')}</div>${susColumnas}`}
+</article>`,scripts:columnas.length?`<script>(function(){const U=${JSON.stringify(columnas.map(urlCol))};const a=document.getElementById('al-azar');
 a.addEventListener('click',e=>{e.preventDefault();location.href=U[Math.floor(Math.random()*U.length)];});})();</script>`:''}));
 
   // ---------- Buscar (en el navegador, sin servidor) ----------
