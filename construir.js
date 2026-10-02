@@ -187,8 +187,7 @@ ${cuerpoHtml}
   const [pie,...restoAutor]=autorTxt.trim().split(/\n\s*\n/);
   escribir('el-autor.html',pagina({ruta:'el-autor.html',titulo:'El autor',descripcion:hayFoto&&pie?recorte(pie,160):`Sobre ${CFG.autor}.`,cuerpo:`
 <article class="columna autor"><h1>${esc(CFG.autor)}</h1>
-${hayFoto?`<figure class="foto-autor"><img src="autor.jpg" alt="${esc(pie||CFG.autor)}" width="720" height="1378" decoding="async"><figcaption>${esc((pie||'').replace(/\s*\n\s*/g,' '))}</figcaption></figure>
-<div class="cuerpo">${parrafos(restoAutor.join('\n\n'))}</div>`:`<div class="cuerpo">${parrafos(autorTxt||'Texto sobre el autor.')}</div>`}</article>`}));
+${hayFoto?`<figure class="foto-autor"><img src="autor.jpg" alt="${esc(pie||CFG.autor)}" width="720" height="1378" decoding="async"><figcaption><p class="pie">${esc((pie||'').replace(/\s*\n\s*/g,' '))}</p>${parrafos(restoAutor.join('\n\n'))}</figcaption></figure>`:`<div class="cuerpo">${parrafos(autorTxt||'Texto sobre el autor.')}</div>`}</article>`}));
 
   // ---------- Buscar (en el navegador, sin servidor) ----------
   const indice=columnas.map(c=>({t:c.titulo,a:c.anio||'',f:c.fecha||'',r:recorte(c.resumen,200),u:urlCol(c),x:`${c.bajada||''} ${c.tema||''} ${c.texto||''}`}));
