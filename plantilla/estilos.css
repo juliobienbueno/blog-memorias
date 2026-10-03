@@ -196,7 +196,7 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
 .columna .advertencia b{font-style:normal;color:var(--ink)}
 .columna .advertencia+.cuerpo{margin-top:36px}
 /* Mensaje del día: más grande y en tinta oscura para que no pase desapercibido */
-.portada .mast p.dia{max-width:44ch;margin-top:clamp(6px,1.4vh,14px);font-size:clamp(16px,2.8vh,24px);line-height:1.35;color:var(--ink)}
+.portada .mast p.dia{max-width:44ch;margin-top:clamp(6px,1.4vh,14px);font-size:clamp(16px,2.8vh,24px);line-height:1.35;color:#000;-webkit-text-stroke:.4px #000;paint-order:stroke fill}
 .portada .mast p.dia::before,.portada .mast p.dia::after{content:"";display:inline-block;width:.9em;height:2px;margin:0 .45em;vertical-align:.32em;background:var(--stamp)}
 @media (max-width:640px){.portada .mast p.dia{font-size:17px;max-width:none}}
 @media (max-height:560px){.portada .mast p.dia{font-size:14px;margin-top:2px}}
