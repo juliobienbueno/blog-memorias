@@ -230,6 +230,12 @@ $('#filas').addEventListener('click',async e=>{
 });
 
 // ================= Carga de Word =================
+function advertencia(r){
+  const t=String(C.advertencia||'').trim().replace(/[.:]$/,'');
+  if(!t)return null;
+  const f=r.fecha&&r.anio?': '+r.fecha.charAt(0).toLowerCase()+r.fecha.slice(1):'';
+  return esc(t+f+'.');
+}
 async function inflar(datos){
   const s=new Blob([datos]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
   return new Uint8Array(await new Response(s).arrayBuffer());
@@ -254,6 +260,11 @@ async function subir(archivos){
         fecha_manual:previa?previa.fecha_manual:null,actualizado_por:sesion.email};
       // si antes se corrigió la fecha a mano y el Word sigue sin año válido, se mantiene la corrección
       if(reg.fecha_manual&&(!d.anio||d.avisos.some(a=>/año/.test(a))))N.aplicarFecha(reg,reg.fecha_manual);
+      // La advertencia sobre el presentismo va como primer epígrafe. En una columna nueva se agrega con su fecha;
+      // al volver a subir el Word de una que ya existía, se conserva la que tenía (editada o no), o ninguna si se quitó.
+      const advPrevia=previa&&(previa.epigrafe||[]).find(e=>/presentismo/i.test(e));
+      const adv=!previa?advertencia(reg):advPrevia||null;
+      if(adv&&!(reg.epigrafe||[]).some(e=>/presentismo/i.test(e)))reg.epigrafe=[adv,...(reg.epigrafe||[])];
       await DB.guardar([reg]);alguno=true;
       let aviso='';try{await subirOriginal(id,f);}catch(err){aviso=' · No se guardó una copia del Word original: '+err.message;}
       li.className=reg.avisos.length?'aviso':'ok';

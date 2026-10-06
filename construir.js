@@ -174,7 +174,6 @@ d.addEventListener('click',e=>{if(e.target===d)d.close();});})();</script>`,
   ${c.bajada?`<p class="bajada">${esc(c.bajada)}</p>`:''}
   ${(c.epigrafe||[]).length?`<blockquote class="epigrafe">${c.epigrafe.map(e=>`<p>${e}</p>`).join('')}</blockquote>`:''}
   ${(c.notas||[]).map(n=>`<aside class="nota">${esc(n)}</aside>`).join('\n')}
-  ${CFG.advertencia?`<p class="advertencia" role="note">${esc(String(CFG.advertencia).trim().replace(/[.:]$/,''))}${c.fecha&&c.anio?`: <b>${esc(c.fecha.charAt(0).toLowerCase()+c.fecha.slice(1))}</b>`:''}.</p>`:''}
   <div class="cuerpo">
 ${cuerpoHtml}
   </div>
@@ -231,7 +230,7 @@ q.addEventListener('input',f);const u=new URLSearchParams(location.search).get('
   fs.mkdirSync(path.join(SALIDA,'admin'),{recursive:true});
   for(const f of ['index.html','panel.js'])fs.copyFileSync(path.join(RAIZ,'admin',f),path.join(SALIDA,'admin',f));
   fs.copyFileSync(path.join(RAIZ,'lib','nucleo.js'),path.join(SALIDA,'admin','nucleo.js'));
-  escribir('admin/config.js',`window.CONFIG=${JSON.stringify({supabaseUrl:(process.env.SUPABASE_URL||CFG.supabaseUrl||'').replace(/\/$/,''),supabaseKey:process.env.SUPABASE_KEY||CFG.supabaseKey,sitio:CFG.titulo})};\n`);
+  escribir('admin/config.js',`window.CONFIG=${JSON.stringify({supabaseUrl:(process.env.SUPABASE_URL||CFG.supabaseUrl||'').replace(/\/$/,''),supabaseKey:process.env.SUPABASE_KEY||CFG.supabaseKey,sitio:CFG.titulo,advertencia:CFG.advertencia||''})};\n`);
   return columnas.length;
 }
 
