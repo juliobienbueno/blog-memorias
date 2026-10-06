@@ -217,7 +217,9 @@ $('#filas').addEventListener('change',async e=>{
   const inp=e.target.closest('input[data-campo]');if(!inp)return;
   const id=inp.closest('tr').dataset.id,c=cols.find(x=>x.id===id);
   const campos=inp.dataset.campo==='tema'?{tema:inp.value.trim()}:(()=>{const r=N.aplicarFecha({avisos:c.avisos},inp.value);return {fecha:r.fecha,fecha_manual:r.fecha_manual,anio:r.anio,mes:r.mes,avisos:r.avisos};})();
-  try{const r=await DB.cambiar(id,{...campos,actualizado_por:sesion.email});Object.assign(c,r);inp.classList.add('guardado');setTimeout(pintar,700);hayCambios();}
+  try{
+    if('fecha' in campos){const full=await DB.una(id);const ep=full&&conFechaNueva(full.epigrafe,campos);if(ep)campos.epigrafe=ep;}
+    const r=await DB.cambiar(id,{...campos,actualizado_por:sesion.email});Object.assign(c,r);inp.classList.add('guardado');setTimeout(pintar,700);hayCambios();}
   catch(err){nota('error',esc(err.message));}
 });
 $('#filas').addEventListener('click',async e=>{
@@ -235,6 +237,16 @@ function advertencia(r){
   if(!t)return null;
   const f=r.fecha&&r.anio?': '+r.fecha.charAt(0).toLowerCase()+r.fecha.slice(1):'';
   return esc(t+f+'.');
+}
+// Si el epígrafe tiene la advertencia tal como la puso el panel (con o sin fecha), la actualiza con la fecha nueva.
+// Si alguien la editó a mano, no la toca. Devuelve la lista nueva, o null si no hubo cambio.
+function conFechaNueva(lista,r){
+  const t=String(C.advertencia||'').trim().replace(/[.:]$/,'');
+  if(!t||!Array.isArray(lista))return null;
+  const re=new RegExp('^'+esc(t).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(: [^.<]+)?\\.$');
+  let cambio=false;
+  const out=lista.map(e=>{if(re.test(String(e).trim())){const n=advertencia(r);if(n&&n!==e){cambio=true;return n;}}return e;});
+  return cambio?out:null;
 }
 async function inflar(datos){
   const s=new Blob([datos]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
@@ -311,6 +323,7 @@ async function guardar(){
   if(v.fecha!==original.fecha){const r=N.aplicarFecha({avisos:registro.avisos},v.fecha);Object.assign(c,{fecha:r.fecha,fecha_manual:r.fecha_manual,anio:r.anio,mes:r.mes,avisos:r.avisos});}
   if(v.notas!==original.notas)c.notas=N.editableALista(v.notas);
   if(v.epigrafe!==original.epigrafe)c.epigrafe=N.editableALista(v.epigrafe,{html:true});
+  if('fecha' in c){const ep=conFechaNueva(c.epigrafe||registro.epigrafe,c);if(ep)c.epigrafe=ep;}
   if(v.cuerpo!==original.cuerpo){c.cuerpo=N.editableACuerpo(v.cuerpo);c.texto=N.cuerpoATexto(c.cuerpo);}
   if(['titulo','bajada','notas','epigrafe','cuerpo'].some(k=>k in c))c.editado_en_panel=new Date().toISOString();
   c.actualizado_por=sesion.email;
