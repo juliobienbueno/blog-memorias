@@ -52,6 +52,7 @@ En el panel → **Ajustes** → **Cargar respaldo…** → elige el archivo `dat
 - **Cambiar contraseña**: botón arriba. Si alguien la olvida: **¿Olvidaste tu contraseña?** en la pantalla de entrada (llega un correo).
 - **Respaldo**: en Ajustes puedes descargar todas las columnas en un archivo.
 - **Mensajes del día** (bajo el título de la portada): botón arriba. Cada semana lleva dos mensajes: uno de lunes a miércoles y otro de jueves a domingo; si una mitad queda vacía, sigue el último que hubo. Un mensaje para un día especial reemplaza al de la semana ese día. El cambio es a medianoche, hora de Chile, sin volver a publicar. (Requiere haber ejecutado `supabase/mensajes.sql` y `supabase/mensajes-semanas.sql` en el SQL Editor de Supabase.)
+- **Presentación**: la foto que acompaña el texto es `plantilla/presentacion.jpg` (si se borra, la presentación queda solo con texto).
 - **El autor**: la foto es `plantilla/autor.jpg` y el texto está en `autor.md` (el primer párrafo es el pie de foto; lo demás va debajo).
 - **Presentación** (la ventana "Leer la presentación"): su texto está en `presentacion.md`.
 

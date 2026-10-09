@@ -125,6 +125,8 @@ ${scripts}
   const escribir=(ruta,html)=>fs.writeFileSync(path.join(SALIDA,ruta),html);
   fs.copyFileSync(path.join(RAIZ,'plantilla','estilos.css'),path.join(SALIDA,'estilos.css'));
   fs.copyFileSync(path.join(RAIZ,'plantilla','carrusel.js'),path.join(SALIDA,'carrusel.js'));
+  const fotoPres=fs.existsSync(path.join(RAIZ,'plantilla','presentacion.jpg'));
+  if(fotoPres)fs.copyFileSync(path.join(RAIZ,'plantilla','presentacion.jpg'),path.join(SALIDA,'presentacion.jpg'));
   fs.writeFileSync(path.join(SALIDA,'favicon.svg'),ICONO_SVG(' xmlns="http://www.w3.org/2000/svg"'));
 
   // ---------- Portada ----------
@@ -146,7 +148,7 @@ ${tarjetas}
 </section>
 ${presentacion?`<dialog class="pres" id="pres" aria-labelledby="pres-t">
   <div class="cab"><h2 id="pres-t">Presentación</h2><button type="button" class="cerrar" id="cerrar-pres" aria-label="Cerrar la presentación">×</button></div>
-  <div class="txt">${parrafos(presentacion)}</div>
+  <div class="txt">${fotoPres?`<figure class="foto-pres"><img src="presentacion.jpg" alt="${esc(CFG.autor)} en su casa" width="900" height="1008" loading="lazy" decoding="async"></figure>`:''}${parrafos(presentacion)}</div>
 </dialog>`:''}`,scripts:`<script src="carrusel.js"></script>
 ${mensajes.length?`<script>(function(){const M=${JSON.stringify(mensajes).replace(/</g,'\\u003c')};
 ${N.hoyChile.toString()}

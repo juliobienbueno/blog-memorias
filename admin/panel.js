@@ -71,7 +71,7 @@ async function borrarOriginal(id){
     headers:{apikey:C.supabaseKey,Authorization:'Bearer '+(await token()),'Content-Type':'application/json'},body:JSON.stringify({prefixes:[id+'.docx']})});}catch{}
 }
 const DB={
-  lista:()=>rest('columnas?select=id,titulo,bajada,fecha,anio,mes,tema,archivo,avisos,editado_en_panel,texto&order=anio.asc.nullslast,mes.asc.nullsfirst,titulo.asc'),
+  lista:()=>rest('columnas?select=id,titulo,bajada,fecha,anio,mes,tema,archivo,avisos,editado_en_panel,creado,texto&order=anio.asc.nullslast,mes.asc.nullsfirst,titulo.asc'),
   una:async id=>(await rest('columnas?select=*&id=eq.'+encodeURIComponent(id)))[0]||null,
   guardar:regs=>rest('columnas?on_conflict=id',{metodo:'POST',cuerpo:regs,prefer:'resolution=merge-duplicates,return=representation'}),
   cambiar:async(id,campos)=>(await rest('columnas?id=eq.'+encodeURIComponent(id),{metodo:'PATCH',cuerpo:campos,prefer:'return=representation'}))[0],
@@ -195,9 +195,20 @@ $('#j-subir').onchange=async e=>{
 let cols=[];
 function nota(clase,html){const li=document.createElement('li');li.className=clase;li.innerHTML=html;$('#log').prepend(li);return li;}
 async function cargar(){
-  try{cols=await DB.lista();pintar();}
+  try{cols=await DB.lista();calcularNuevas();pintar();}
   catch(err){$('#filas').innerHTML=`<tr><td colspan="5" class="vacio">${esc(err.message)}</td></tr>`;}
 }
+// Etiquetas: "nueva" en las 5 columnas subidas más recientemente (sin contar la carga inicial de todas
+// juntas, que se hizo de una vez) y "editada en el panel" solo durante los 7 días siguientes a la edición.
+const DIAS_EDITADA=7,CUANTAS_NUEVAS=5;
+let nuevas=new Set();
+function calcularNuevas(){
+  const fechas=cols.map(c=>Date.parse(c.creado)).filter(Boolean);
+  if(!fechas.length){nuevas=new Set();return;}
+  const cargaInicial=Math.min(...fechas)+60*60*1000; // lo creado en la primera hora es la carga inicial
+  nuevas=new Set(cols.filter(c=>Date.parse(c.creado)>cargaInicial).sort((a,b)=>Date.parse(b.creado)-Date.parse(a.creado)).slice(0,CUANTAS_NUEVAS).map(c=>c.id));
+}
+const editadaReciente=c=>c.editado_en_panel&&Date.now()-Date.parse(c.editado_en_panel)<DIAS_EDITADA*864e5;
 function pintar(){
   const q=norm($('#filtro').value),solo=$('#soloAvisos').checked;
   const vis=cols.filter(c=>(!solo||(c.avisos||[]).length)&&(!q||norm(c.titulo).includes(q)));
@@ -205,7 +216,7 @@ function pintar(){
   $('#cuenta').textContent=` · ${cols.length} columna${cols.length===1?'':'s'}${conAviso?` · ${conAviso} por revisar`:''}`;
   $('#filas').innerHTML=vis.length?vis.map(c=>`<tr data-id="${esc(c.id)}">
     <td class="t"><a href="/columnas/${esc(c.id)}.html" target="_blank" rel="noopener">${esc(c.titulo)}</a>${c.bajada?`<small>${esc(c.bajada)}</small>`:''}
-      ${c.editado_en_panel?'<span class="chip ed">editada en el panel</span> ':''}${(c.avisos||[]).map(a=>`<span class="chip">${esc(a)}</span>`).join(' ')}</td>
+      ${nuevas.has(c.id)?'<span class="chip nueva">nueva</span> ':''}${editadaReciente(c)?'<span class="chip ed">editada en el panel</span> ':''}${(c.avisos||[]).map(a=>`<span class="chip">${esc(a)}</span>`).join(' ')}</td>
     <td><input data-campo="fecha" value="${esc(c.fecha)}" placeholder="Julio de 1990" aria-label="Fecha"></td>
     <td><input data-campo="tema" value="${esc(c.tema)}" placeholder="Sin tema" aria-label="Tema"></td>
     <td class="n">${N.contarPalabras(c.texto).toLocaleString('es-CL')}</td>
