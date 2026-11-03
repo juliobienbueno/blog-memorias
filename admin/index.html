@@ -178,6 +178,9 @@ dialog .msg{min-height:1.4em;margin:10px 0 0;font-size:13px;color:var(--stamp)}
 .msg{min-height:1.4em;margin:12px 0 0;font-size:13.5px;color:var(--stamp)}
 .msg.ok{color:var(--ok)}
 .ayuda{font-size:13.5px;color:var(--grey);margin:8px 0 0}
+.caja label.recordar{display:flex;gap:10px;align-items:center;margin-top:16px;font:15px "Libre Baskerville",Georgia,serif;cursor:pointer}
+.caja label.recordar input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--ink)}
+.ayuda-recordar{margin:4px 0 0 32px;font-size:13px;color:var(--grey);font-style:italic}
 .enlace{margin-top:6px;background:none;border:0;padding:0;color:var(--ink);font:13.5px "Libre Baskerville",Georgia,serif;text-decoration:underline;cursor:pointer}
 .publicar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;padding:10px 14px;border:2px solid var(--ink);background:var(--paper2);font-size:14px}
 .publicar.ok{border-color:var(--ok)}.publicar.pendiente{border-color:var(--warn)}.publicar.error{border-color:var(--stamp)}
@@ -247,6 +250,8 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
       <input id="a-correo" type="email" autocomplete="username" required>
       <label for="a-clave">Contraseña</label>
       <input id="a-clave" type="password" autocomplete="current-password" required>
+      <label class="recordar"><input id="a-recordar" type="checkbox" checked> Mantener la sesión abierta en este equipo</label>
+      <p class="ayuda-recordar">Desmárcalo si el computador o el celular no es tuyo.</p>
       <button class="btn osc ancho" type="submit" id="a-boton">Entrar</button>
       <p class="msg" id="a-msg" role="alert"></p>
       <button class="enlace" type="button" id="a-olvide">¿Olvidaste tu contraseña?</button>

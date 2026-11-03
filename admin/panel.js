@@ -9,13 +9,31 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const norm=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 
 // ================= Supabase =================
+// La sesión de Supabase es un JWT de 1 hora más un token de renovación. Si se marca "Mantener la sesión
+// abierta en este equipo" se guarda en localStorage (sobrevive al cerrar el navegador); si no, en
+// sessionStorage (se borra al cerrar la pestaña). "Salir" la borra de ambos y la cierra en Supabase.
 const CLAVE_SESION='cal-sesion';
-let sesion=null;
-try{sesion=JSON.parse(sessionStorage.getItem(CLAVE_SESION)||'null');}catch{}
+let recordar=false;
+function leerSesion(){
+  for(const st of ['localStorage','sessionStorage']){
+    try{const v=JSON.parse(window[st].getItem(CLAVE_SESION)||'null');if(v&&v.refresh_token){recordar=st==='localStorage';return v;}}catch{}
+  }
+  return null;
+}
+let sesion=leerSesion();
 function guardarSesion(d){
   sesion=d?{access_token:d.access_token,refresh_token:d.refresh_token,expira:Date.now()+(d.expires_in||3600)*1000,email:(d.user&&d.user.email)||(sesion&&sesion.email)||''}:null;
-  try{sesion?sessionStorage.setItem(CLAVE_SESION,JSON.stringify(sesion)):sessionStorage.removeItem(CLAVE_SESION);}catch{}
+  try{
+    localStorage.removeItem(CLAVE_SESION);sessionStorage.removeItem(CLAVE_SESION);
+    if(sesion)(recordar?localStorage:sessionStorage).setItem(CLAVE_SESION,JSON.stringify(sesion));
+  }catch{}
 }
+// Si el panel está abierto en otra pestaña y renueva el token o sale, esta pestaña se entera.
+addEventListener('storage',e=>{
+  if(e.key!==CLAVE_SESION||e.storageArea!==localStorage)return;
+  if(e.newValue){try{sesion=JSON.parse(e.newValue);}catch{}}
+  else if(sesion&&recordar){sesion=null;salirForzado();}
+});
 async function leerRespuesta(r){
   const t=await r.text();let d=null;try{d=t?JSON.parse(t):null;}catch{}
   if(!r.ok){
@@ -48,6 +66,9 @@ async function auth(ruta,cuerpo,{metodo='POST',conSesion=false}={}){
 let renovando=null;
 async function token(){
   if(!sesion)throw Object.assign(new Error('Tu sesión terminó. Vuelve a entrar.'),{status:401});
+  if(Date.now()>sesion.expira-60000){
+    const otra=leerSesion();if(otra&&otra.expira>sesion.expira)sesion=otra; // otra pestaña ya lo renovó
+  }
   if(Date.now()>sesion.expira-60000){
     renovando=renovando||auth('token?grant_type=refresh_token',{refresh_token:sesion.refresh_token}).then(guardarSesion).finally(()=>renovando=null);
     try{await renovando;}catch(e){guardarSesion(null);throw Object.assign(new Error('Tu sesión terminó. Vuelve a entrar.'),{status:401});}
@@ -124,6 +145,7 @@ function salirForzado(){guardarSesion(null);formAcceso('f-entrar');$('#a-msg').t
 
 $('#f-entrar').addEventListener('submit',async e=>{
   e.preventDefault();$('#a-msg').textContent='';$('#a-boton').disabled=true;
+  recordar=$('#a-recordar').checked;
   try{guardarSesion(await auth('token?grant_type=password',{email:$('#a-correo').value.trim(),password:$('#a-clave').value}));$('#a-clave').value='';await iniciar();}
   catch(err){$('#a-msg').textContent=err.message;}
   finally{$('#a-boton').disabled=false;}
