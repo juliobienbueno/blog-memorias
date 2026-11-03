@@ -187,10 +187,6 @@ ${cuerpoHtml}
   const hayFoto=fs.existsSync(path.join(RAIZ,'plantilla','autor.jpg'));
   if(hayFoto)fs.copyFileSync(path.join(RAIZ,'plantilla','autor.jpg'),path.join(SALIDA,'autor.jpg'));
   const [pie,...restoAutor]=autorTxt.trim().split(/\n\s*\n/);
-  const susColumnas=columnas.length?`<aside class="sus-columnas" aria-label="Sus columnas">
-  <p><b>${columnas.length} columnas</b>${rango?` escritas entre ${rango}`:''}</p>
-  <div class="botones"><a class="boton" href="index.html">Ver todas las columnas</a><a class="boton claro" id="al-azar" href="${urlCol(columnas[0])}">Leer una al azar</a></div>
-</aside>`:'';
   // Entrevista (entrevista.md): "# título", "> bajada", párrafos de introducción y luego, por cada pregunta,
   // "## N. Título", "P: pregunta" y "R: respuesta" (la respuesta puede seguir en más párrafos). Sin respuesta: "pendiente".
   const entrevista=(()=>{
@@ -223,14 +219,18 @@ ${preguntas.map(x=>`    <li><h3>${x.n?`<span class="n">${esc(x.n)}</span>`:''}${
   </ol>
 </section>`;
   })();
+  // Página del autor: foto (con su pie) a la izquierda; a la derecha el nombre, el resto de autor.md y la entrevista.
   escribir('el-autor.html',pagina({ruta:'el-autor.html',titulo:'El autor',descripcion:hayFoto&&pie?recorte(pie,160):`Sobre ${CFG.autor}.`,cuerpo:`
 <article class="columna autor">
-${hayFoto?`<div class="ficha-autor"><img src="autor.jpg" alt="${esc(pie||CFG.autor)}" width="720" height="1378" decoding="async">
-<div class="txt"><h1>${esc(CFG.autor)}</h1><p class="pie">${esc((pie||'').replace(/\s*\n\s*/g,' '))}</p>${parrafos(restoAutor.join('\n\n'))}${entrevista?'<a class="ir-entrevista" href="#entrevista">Leer la entrevista ↓</a>':''}</div>
-${susColumnas}</div>`:`<h1>${esc(CFG.autor)}</h1><div class="cuerpo">${parrafos(autorTxt||'Texto sobre el autor.')}</div>${susColumnas}`}
-${entrevista}
-</article>`,scripts:columnas.length?`<script>(function(){const U=${JSON.stringify(columnas.map(urlCol))};const a=document.getElementById('al-azar');
-a.addEventListener('click',e=>{e.preventDefault();location.href=U[Math.floor(Math.random()*U.length)];});})();</script>`:''}));
+  <div class="autor-2col">
+    ${hayFoto?`<figure class="foto-autor-lat"><img src="autor.jpg" alt="${esc(pie||CFG.autor)}" width="720" height="1378" decoding="async">${pie?`<figcaption>${esc(pie.replace(/\s*\n\s*/g,' '))}</figcaption>`:''}</figure>`:''}
+    <div class="autor-cuerpo">
+      <h1>${esc(CFG.autor)}</h1>
+      ${parrafos((hayFoto?restoAutor.join('\n\n'):autorTxt)||'')}
+      ${entrevista}
+    </div>
+  </div>
+</article>`}));
 
   // ---------- Contacto: formulario. El mensaje se guarda en Supabase (se lee en el panel → Contacto)
   // y además se envía un aviso por correo con FormSubmit (formsubmit.co) a CFG.avisoContacto o CFG.contacto.
