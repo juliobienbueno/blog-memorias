@@ -241,12 +241,13 @@ ${preguntas.map(x=>`    <li><h3>${x.n?`<span class="n">${esc(x.n)}</span>`:''}${
   <h1>Contacto</h1>
   <p class="bajada">¿Quiere comentar una columna, proponer un tema o simplemente saludar? Escriba aquí su mensaje y le responderemos al correo que nos indique.</p>
   <form class="form-contacto" id="f-contacto" novalidate>
-    <label for="c-nombre">Su nombre</label>
+    <label for="c-nombre">Nombre</label>
     <input id="c-nombre" name="nombre" type="text" autocomplete="name" maxlength="120" required>
-    <label for="c-correo">Su correo <span class="opc">(para poder responderle)</span></label>
-    <input id="c-correo" name="correo" type="email" autocomplete="email" maxlength="200" required>
-    <label for="c-mensaje">Su mensaje</label>
-    <textarea id="c-mensaje" name="mensaje" rows="8" maxlength="5000" required></textarea>
+    <label for="c-correo">Correo <span class="opc">(para poder responderle)</span></label>
+    <input id="c-correo" name="correo" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="200" required aria-describedby="c-correo-ayuda">
+    <p class="ayuda-campo" id="c-correo-ayuda" aria-live="polite"></p>
+    <label for="c-mensaje">Mensaje</label>
+    <textarea id="c-mensaje" name="mensaje" rows="5" maxlength="5000" required></textarea>
     <div class="trampa" aria-hidden="true"><label for="c-web">No completar</label><input id="c-web" name="web" type="text" tabindex="-1" autocomplete="off"></div>
     <button class="boton" type="submit" id="c-enviar">Enviar mensaje</button>
     <p class="msg-form" id="c-msg" role="status" aria-live="polite"></p>
@@ -261,11 +262,34 @@ const SB=${JSON.stringify({url:urlSB,clave:claveSB,aviso})};
 const f=document.getElementById('f-contacto'),msg=document.getElementById('c-msg'),btn=document.getElementById('c-enviar');
 const t0=Date.now();
 function error(t,campo){msg.className='msg-form error';msg.textContent=t;if(campo)campo.focus();}
+// Revisión del correo: formato válido y sugerencia si el dominio parece mal escrito (gmial.com → gmail.com)
+const DOMINIOS={'gmail.com':['gmial.com','gmai.com','gmal.com','gnail.com','gmaill.com','gamil.com','gmail.co','gmail.con','gmail.cl','gmail.cm','gmail.om','gmail.comm','gmil.com'],
+  'hotmail.com':['hotmial.com','hotmal.com','hotmai.com','hotmail.co','hotmail.con','hotmil.com','hotamil.com','hotmail.cm'],
+  'outlook.com':['outlok.com','outlook.co','outlook.con','outllok.com'],'yahoo.com':['yaho.com','yahoo.co','yahoo.con','yahooo.com'],
+  'yahoo.es':['yaho.es'],'live.cl':['live.cll'],'icloud.com':['iclod.com','icloud.co','icloud.con']};
+const correo=f.correo,ayuda=document.getElementById('c-correo-ayuda');let tocado=false;
+function revisarCorreo(mostrar){
+  const v=correo.value.trim().toLowerCase();let txt='',ok=true,sug='';
+  if(!v){ok=false;txt='Escriba su correo para poder responderle.';}
+  else if(/\\s/.test(v)){ok=false;txt='El correo no puede tener espacios.';}
+  else if(!v.includes('@')){ok=false;txt='Al correo le falta la @ (por ejemplo: nombre@gmail.com).';}
+  else if(!/^[^@]+@[^@]+$/.test(v)){ok=false;txt='El correo tiene más de una @.';}
+  else if(!/^[a-z0-9._%+-]+@[a-z0-9-]+(\\.[a-z0-9-]+)*\\.[a-z]{2,}$/.test(v)){ok=false;txt='Revise el correo: debe ser como nombre@gmail.com';}
+  if(ok){const d=v.split('@')[1];for(const [bueno,malos] of Object.entries(DOMINIOS))if(malos.includes(d))sug=v.split('@')[0]+'@'+bueno;}
+  correo.setAttribute('aria-invalid',ok?'false':'true');correo.classList.toggle('mal',!ok&&mostrar);correo.classList.toggle('bien',ok&&!sug&&!!v);
+  if(mostrar){ayuda.className='ayuda-campo'+(ok?'':' error');
+    ayuda.innerHTML='';if(!ok)ayuda.textContent=txt;
+    else if(sug){ayuda.append('¿Quiso decir ');const b=document.createElement('button');b.type='button';b.className='sugerencia';b.textContent=sug;
+      b.onclick=()=>{correo.value=sug;revisarCorreo(true);correo.focus();};ayuda.append(b,'?');}}
+  return ok;
+}
+correo.addEventListener('blur',()=>{if(correo.value.trim()){tocado=true;revisarCorreo(true);}});
+correo.addEventListener('input',()=>{if(tocado)revisarCorreo(true);});
 f.addEventListener('submit',async e=>{
   e.preventDefault();
   const nombre=f.nombre.value.trim(),correo=f.correo.value.trim(),mensaje=f.mensaje.value.trim();
   if(!nombre)return error('Escriba su nombre.',f.nombre);
-  if(!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(correo))return error('Revise su correo: debe ser como nombre@ejemplo.cl',f.correo);
+  tocado=true;if(!revisarCorreo(true))return error('Revise el correo antes de enviar.',f.correo);
   if(!mensaje)return error('Escriba su mensaje.',f.mensaje);
   // trampa para programas de spam: un campo oculto que las personas no llenan, o un envío demasiado rápido
   if(f.web.value||Date.now()-t0<3000){f.hidden=true;document.getElementById('c-gracias').hidden=false;return;}

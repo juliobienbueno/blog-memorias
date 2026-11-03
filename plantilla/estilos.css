@@ -224,3 +224,20 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
   .foto-autor-lat img{max-height:42vh;object-position:50% 30%}
   .autor-cuerpo h1{font-size:30px}
 }
+/* Contacto más compacto, para que el formulario completo quepa en la pantalla */
+.contacto-pag{margin-top:clamp(16px,3vh,32px)}
+.contacto-pag h1{margin:0 0 6px;font-size:clamp(30px,4.5vw,40px)}
+.contacto-pag .bajada{margin:0 0 4px;font-size:17px;line-height:1.5}
+.form-contacto{margin-top:14px}
+.form-contacto label{margin:10px 0 4px;font-size:16px}
+.form-contacto input,.form-contacto textarea{padding:9px 12px;font-size:17px}
+.form-contacto textarea{min-height:90px;height:clamp(90px,calc(100vh - 640px),220px)}
+.form-contacto .boton{margin-top:16px;min-height:48px}
+.form-contacto input.mal{border-color:var(--stamp);background:#f6e9e6}
+.form-contacto input.bien{border-color:#3f5a36}
+.ayuda-campo{min-height:1.3em;margin:3px 0 0;font-size:14.5px;color:var(--grey)}
+.ayuda-campo.error{color:var(--stamp);font-weight:700}
+.ayuda-campo .sugerencia{padding:0;border:0;background:none;font:inherit;font-weight:700;color:var(--ink);text-decoration:underline;cursor:pointer}
+.msg-form{margin-top:10px}
+main:has(.contacto-pag)+.site-foot{margin-top:18px}
+.msg-form:empty{display:none}
