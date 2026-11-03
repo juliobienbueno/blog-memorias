@@ -71,7 +71,7 @@ async function borrarOriginal(id){
     headers:{apikey:C.supabaseKey,Authorization:'Bearer '+(await token()),'Content-Type':'application/json'},body:JSON.stringify({prefixes:[id+'.docx']})});}catch{}
 }
 const DB={
-  lista:()=>rest('columnas?select=id,titulo,bajada,fecha,anio,mes,tema,archivo,avisos,editado_en_panel,creado,texto&order=anio.asc.nullslast,mes.asc.nullsfirst,titulo.asc'),
+  lista:()=>rest('columnas?select=id,titulo,bajada,fecha,anio,mes,archivo,avisos,editado_en_panel,creado&order=anio.asc.nullslast,mes.asc.nullsfirst,titulo.asc'),
   una:async id=>(await rest('columnas?select=*&id=eq.'+encodeURIComponent(id)))[0]||null,
   guardar:regs=>rest('columnas?on_conflict=id',{metodo:'POST',cuerpo:regs,prefer:'resolution=merge-duplicates,return=representation'}),
   cambiar:async(id,campos)=>(await rest('columnas?id=eq.'+encodeURIComponent(id),{metodo:'PATCH',cuerpo:campos,prefer:'return=representation'}))[0],
@@ -200,7 +200,7 @@ let cols=[];
 function nota(clase,html){const li=document.createElement('li');li.className=clase;li.innerHTML=html;$('#log').prepend(li);return li;}
 async function cargar(){
   try{cols=await DB.lista();calcularNuevas();pintar();}
-  catch(err){$('#filas').innerHTML=`<tr><td colspan="5" class="vacio">${esc(err.message)}</td></tr>`;}
+  catch(err){$('#filas').innerHTML=`<tr><td colspan="5" class="vacio">${esc(err.message)}</td></tr>`;$('#c-pag').innerHTML='';}
 }
 // Etiquetas: "nueva" en las 5 columnas subidas más recientemente (sin contar la carga inicial de todas
 // juntas, que se hizo de una vez) y "editada en el panel" solo durante los 7 días siguientes a la edición.
@@ -213,27 +213,81 @@ function calcularNuevas(){
   nuevas=new Set(cols.filter(c=>Date.parse(c.creado)>cargaInicial).sort((a,b)=>Date.parse(b.creado)-Date.parse(a.creado)).slice(0,CUANTAS_NUEVAS).map(c=>c.id));
 }
 const editadaReciente=c=>c.editado_en_panel&&Date.now()-Date.parse(c.editado_en_panel)<DIAS_EDITADA*864e5;
+// Tabla tipo planilla: se ordena con un clic en el encabezado (otro clic invierte el orden) y se muestra por páginas.
+const POR_PAGINA=20;
+let orden={campo:'fecha',dir:1},pagCol=1;
+try{const o=JSON.parse(sessionStorage.getItem('orden-columnas'));if(o&&o.campo)orden=o;}catch{}
+const fechaCorta=iso=>iso?new Date(iso).toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'}).replace('.',''):'';
+const fechaLarga=iso=>iso?new Date(iso).toLocaleString('es-CL',{dateStyle:'long',timeStyle:'short'}):'';
+const CLAVES={
+  titulo:c=>norm(c.titulo),
+  fecha:c=>c.anio?c.anio*100+(c.mes||0):null,
+  creado:c=>Date.parse(c.creado)||null,
+  editado:c=>Date.parse(c.editado_en_panel)||null};
+function comparar(a,b){
+  const k=CLAVES[orden.campo],x=k(a),y=k(b);
+  if(x===null||y===null){if(x===y)return norm(a.titulo).localeCompare(norm(b.titulo),'es');return x===null?1:-1;} // vacíos siempre al final
+  const r=typeof x==='string'?x.localeCompare(y,'es'):x-y;
+  return r*orden.dir||norm(a.titulo).localeCompare(norm(b.titulo),'es');
+}
+function pintarEncabezados(){
+  const sel=$('#orden-movil'),v=orden.campo+':'+orden.dir;
+  sel.value=v;
+  document.querySelectorAll('th[data-orden]').forEach(th=>{
+    const activo=th.dataset.orden===orden.campo;
+    th.setAttribute('aria-sort',activo?(orden.dir>0?'ascending':'descending'):'none');
+    th.querySelector('.flecha').textContent=activo?(orden.dir>0?'▲':'▼'):'↕';
+  });
+}
 function pintar(){
   const q=norm($('#filtro').value),solo=$('#soloAvisos').checked;
-  const vis=cols.filter(c=>(!solo||(c.avisos||[]).length)&&(!q||norm(c.titulo).includes(q)));
+  const vis=cols.filter(c=>(!solo||(c.avisos||[]).length)&&(!q||norm(c.titulo).includes(q))).sort(comparar);
   const conAviso=cols.filter(c=>(c.avisos||[]).length).length;
   $('#cuenta').textContent=` · ${cols.length} columna${cols.length===1?'':'s'}${conAviso?` · ${conAviso} por revisar`:''}`;
-  $('#filas').innerHTML=vis.length?vis.map(c=>`<tr data-id="${esc(c.id)}">
+  const total=Math.max(1,Math.ceil(vis.length/POR_PAGINA));
+  pagCol=Math.min(Math.max(1,pagCol),total);
+  const ini=(pagCol-1)*POR_PAGINA,trozo=vis.slice(ini,ini+POR_PAGINA);
+  pintarEncabezados();
+  $('#filas').innerHTML=trozo.length?trozo.map(c=>`<tr data-id="${esc(c.id)}">
     <td class="t"><a href="/columnas/${esc(c.id)}.html" target="_blank" rel="noopener">${esc(c.titulo)}</a>${c.bajada?`<small>${esc(c.bajada)}</small>`:''}
       ${nuevas.has(c.id)?'<span class="chip nueva">nueva</span> ':''}${editadaReciente(c)?'<span class="chip ed">editada en el panel</span> ':''}${(c.avisos||[]).map(a=>`<span class="chip">${esc(a)}</span>`).join(' ')}</td>
     <td><input data-campo="fecha" value="${esc(c.fecha)}" placeholder="Julio de 1990" aria-label="Fecha"></td>
-    <td><input data-campo="tema" value="${esc(c.tema)}" placeholder="Sin tema" aria-label="Tema"></td>
-    <td class="n">${N.contarPalabras(c.texto).toLocaleString('es-CL')}</td>
+    <td class="f" data-et="Subida" title="${esc(fechaLarga(c.creado))}">${esc(fechaCorta(c.creado))}</td>
+    <td class="f" data-et="Editada" title="${esc(fechaLarga(c.editado_en_panel))}">${c.editado_en_panel?esc(fechaCorta(c.editado_en_panel)):'<span class="nada">—</span>'}</td>
     <td class="acc"><button class="btn chico" data-editar type="button">Editar</button><button class="btn chico peligro" data-quitar type="button">Quitar</button></td></tr>`).join('')
     :`<tr><td colspan="5" class="vacio">${cols.length?'Ninguna coincide.':'Aún no hay columnas. Arrastra los Word arriba.'}</td></tr>`;
+  // paginación
+  const pag=$('#c-pag');
+  if(total<=1){pag.innerHTML=vis.length?`<span class="pag-info">${vis.length} de ${cols.length}</span>`:'';return;}
+  const nums=[];
+  for(let i=1;i<=total;i++){if(i===1||i===total||Math.abs(i-pagCol)<=1)nums.push(i);else if(nums[nums.length-1]!=='…')nums.push('…');}
+  pag.innerHTML=`<span class="pag-info">Mostrando ${ini+1} a ${ini+trozo.length} de ${vis.length}</span>
+    <div class="pag-botones"><button class="btn chico" type="button" data-pag="${pagCol-1}" ${pagCol===1?'disabled':''}>← Anterior</button>
+    ${nums.map(n=>n==='…'?'<span class="puntos">…</span>':`<button class="btn chico" type="button" data-pag="${n}" ${n===pagCol?'aria-current="page"':''} aria-label="Página ${n}">${n}</button>`).join('')}
+    <button class="btn chico" type="button" data-pag="${pagCol+1}" ${pagCol===total?'disabled':''}>Siguiente →</button></div>`;
 }
-$('#filtro').oninput=pintar;$('#soloAvisos').onchange=pintar;
+$('#c-pag').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-pag]');if(!b||b.disabled||b.getAttribute('aria-current'))return;
+  pagCol=+b.dataset.pag;pintar();
+  const tabla=$('#filas').closest('table');if(tabla.getBoundingClientRect().top<0)tabla.scrollIntoView({block:'start'});
+});
+document.querySelectorAll('th[data-orden] button').forEach(b=>b.onclick=()=>{
+  const campo=b.closest('th').dataset.orden;
+  // primer clic: lo más reciente primero en las fechas de subida y edición; A→Z y lo más antiguo primero en lo demás
+  orden=orden.campo===campo?{campo,dir:-orden.dir}:{campo,dir:campo==='creado'||campo==='editado'?-1:1};
+  try{sessionStorage.setItem('orden-columnas',JSON.stringify(orden));}catch{}
+  pagCol=1;pintar();
+});
+$('#orden-movil').onchange=e=>{const [campo,dir]=e.target.value.split(':');orden={campo,dir:+dir};
+  try{sessionStorage.setItem('orden-columnas',JSON.stringify(orden));}catch{}pagCol=1;pintar();};
+$('#filtro').oninput=()=>{pagCol=1;pintar();};$('#soloAvisos').onchange=()=>{pagCol=1;pintar();};
 $('#filas').addEventListener('change',async e=>{
   const inp=e.target.closest('input[data-campo]');if(!inp)return;
   const id=inp.closest('tr').dataset.id,c=cols.find(x=>x.id===id);
-  const campos=inp.dataset.campo==='tema'?{tema:inp.value.trim()}:(()=>{const r=N.aplicarFecha({avisos:c.avisos},inp.value);return {fecha:r.fecha,fecha_manual:r.fecha_manual,anio:r.anio,mes:r.mes,avisos:r.avisos};})();
+  const r0=N.aplicarFecha({avisos:c.avisos},inp.value);
+  const campos={fecha:r0.fecha,fecha_manual:r0.fecha_manual,anio:r0.anio,mes:r0.mes,avisos:r0.avisos,editado_en_panel:new Date().toISOString()};
   try{
-    if('fecha' in campos){const full=await DB.una(id);const ep=full&&conFechaNueva(full.epigrafe,campos);if(ep)campos.epigrafe=ep;}
+    {const full=await DB.una(id);const ep=full&&conFechaNueva(full.epigrafe,campos);if(ep)campos.epigrafe=ep;}
     const r=await DB.cambiar(id,{...campos,actualizado_por:sesion.email});Object.assign(c,r);inp.classList.add('guardado');setTimeout(pintar,700);hayCambios();}
   catch(err){nota('error',esc(err.message));}
 });

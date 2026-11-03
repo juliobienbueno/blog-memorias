@@ -106,6 +106,40 @@ dialog label{display:block;margin-top:12px;font:700 13px "Old Standard TT",Georg
 dialog input{width:100%;margin-top:4px;padding:9px 10px;border:2px solid var(--ink);background:var(--field);font:15px "Libre Baskerville",Georgia,serif}
 dialog .fila{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
 dialog .msg{min-height:1.4em;margin:10px 0 0;font-size:13px;color:var(--stamp)}
+/* tabla de columnas tipo planilla */
+.tabla-cols{border:2px solid var(--ink);background:var(--paper2)}
+.tabla-cols th,.tabla-cols td{border-right:1px solid #b9b2a3}
+.tabla-cols th:last-child,.tabla-cols td:last-child{border-right:0}
+.tabla-cols th{padding:0;background:#e9e3d6;position:sticky;top:0;z-index:1}
+.tabla-cols th button{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:6px;width:100%;padding:10px 8px;cursor:pointer;
+  font:700 13px "Old Standard TT",Georgia,serif;text-transform:uppercase;letter-spacing:.05em;color:var(--grey)}
+.tabla-cols th button:hover{background:#ddd5c4;color:var(--ink)}
+.tabla-cols th button:focus-visible{outline:3px solid var(--ink);outline-offset:-3px}
+.tabla-cols th[aria-sort=ascending] button,.tabla-cols th[aria-sort=descending] button{color:var(--ink);background:#ddd5c4}
+.tabla-cols .flecha{font-size:11px;opacity:.5}
+.tabla-cols th[aria-sort=ascending] .flecha,.tabla-cols th[aria-sort=descending] .flecha{opacity:1;color:var(--stamp)}
+.tabla-cols tbody tr:nth-child(even){background:rgba(0,0,0,.025)}
+.tabla-cols tbody tr:hover{background:#efe9dc}
+.tabla-cols td{border-bottom:1px solid #cfc8b8}
+.tabla-cols td.f{white-space:nowrap;padding-top:15px;font-variant-numeric:tabular-nums}
+.tabla-cols td.f .nada{color:var(--grey)}
+.oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.orden-movil{display:none}
+.orden-movil select{display:block;width:100%;margin-top:4px;padding:8px 10px;border:2px solid var(--ink);background:var(--field);font:15px "Libre Baskerville",Georgia,serif;color:var(--ink)}
+.c-pag{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px}
+.c-pag:empty{display:none}
+.pag-info{font-style:italic;color:var(--grey);font-size:14px}
+.pag-botones{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pag-botones .btn{min-width:38px;justify-content:center}
+.pag-botones .puntos{color:var(--grey)}
+@media (max-width:760px){
+  .tabla-cols{border:0;background:none}.tabla-cols th,.tabla-cols td{border-right:0}
+  .tabla-cols tbody tr:nth-child(even){background:none}
+  .tabla-cols td.f{padding-top:2px;color:var(--grey);font-size:13px}
+  .tabla-cols td.f::before{content:attr(data-et) ": "}
+  .tabla-cols td{border-bottom:0}
+  .orden-movil{display:block;width:100%}
+}
 @media (max-width:760px){
   thead{display:none}table,tbody,tr,td{display:block;width:100%}
   tr{padding:10px 0;border-bottom:2px solid var(--ink)}td{border:0;padding:4px 0}.n{text-align:left}
@@ -236,13 +270,24 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
       <div class="der">
         <label><input type="checkbox" id="soloAvisos"> Solo las que tienen algo que revisar</label>
         <input type="search" id="filtro" placeholder="Buscar por título…" aria-label="Buscar por título">
+        <label class="orden-movil">Ordenar por <select id="orden-movil">
+          <option value="fecha:1">Escrita, más antigua primero</option><option value="fecha:-1">Escrita, más reciente primero</option>
+          <option value="creado:-1">Subida, más reciente primero</option><option value="creado:1">Subida, más antigua primero</option>
+          <option value="editado:-1">Editada, más reciente primero</option><option value="editado:1">Editada, más antigua primero</option><option value="titulo:1">Título, A → Z</option><option value="titulo:-1">Título, Z → A</option>
+        </select></label>
       </div>
     </div>
-    <table>
-      <thead><tr><th>Columna</th><th style="width:190px">Fecha</th><th style="width:150px">Tema (opcional)</th><th class="n" style="width:80px">Palabras</th><th style="width:170px"></th></tr></thead>
+    <table class="tabla-cols">
+      <thead><tr>
+        <th data-orden="titulo"><button type="button">Columna <span class="flecha" aria-hidden="true"></span></button></th>
+        <th data-orden="fecha" style="width:190px"><button type="button">Escrita <span class="flecha" aria-hidden="true"></span></button></th>
+        <th data-orden="creado" style="width:130px"><button type="button">Subida <span class="flecha" aria-hidden="true"></span></button></th>
+        <th data-orden="editado" style="width:130px"><button type="button">Editada <span class="flecha" aria-hidden="true"></span></button></th>
+        <th style="width:170px"><span class="oculto">Acciones</span></th></tr></thead>
       <tbody id="filas"><tr><td colspan="5" class="vacio">Cargando…</td></tr></tbody>
     </table>
-    <p class="nota">La fecha y el tema se guardan al salir del campo. Con <b>Editar</b> corriges el título, la bajada y el texto completo. Si vuelves a cargar el Word de una columna, reemplaza el texto (también lo editado aquí), pero conserva el tema y la fecha corregida. Los cambios se publican en el sitio automáticamente unos segundos después.</p>
+    <nav class="c-pag" id="c-pag" aria-label="Páginas de columnas"></nav>
+    <p class="nota">Haz clic en el nombre de una columna de la tabla (Columna, Escrita, Subida, Editada) para ordenar por ella; otro clic invierte el orden. «Escrita» es la fecha de la columna y se guarda al salir del campo. «Subida» es cuándo se cargó al panel y «Editada», la última vez que se cambió aquí. Con <b>Editar</b> corriges el título, la bajada y el texto completo. Si vuelves a cargar el Word de una columna, reemplaza el texto (también lo editado aquí), pero conserva la fecha corregida. Los cambios se publican en el sitio automáticamente unos segundos después.</p>
   </section>
 
   <!-- ===== Mensajes del día ===== -->
