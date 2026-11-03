@@ -200,3 +200,23 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
 .foto-pres{float:right;width:min(42%,300px);margin:6px 0 14px 24px}
 .foto-pres img{display:block;width:100%;height:auto;border:3px solid var(--ink);box-shadow:6px 6px 0 var(--shadow);background:#cfcabd}
 @media (max-width:560px){.foto-pres{float:none;width:100%;margin:0 0 20px}.foto-pres img{max-height:55vh;object-fit:cover;object-position:50% 40%}}
+/* Entrevista en la página del autor (texto en entrevista.md) */
+.ir-entrevista{display:inline-block;margin-top:4px;font:700 15px "Old Standard TT",Georgia,serif;color:var(--stamp);border-bottom:2px solid var(--stamp);text-decoration:none}
+.ir-entrevista:hover{color:var(--ink);border-color:var(--ink)}
+.entrevista{max-width:680px;margin:clamp(56px,10vh,96px) auto 0;padding-top:28px;border-top:4px double var(--ink);scroll-margin-top:20px}
+.entrevista .kicker{margin:0 0 6px;font:700 13px "Old Standard TT",Georgia,serif;letter-spacing:.14em;text-transform:uppercase;color:var(--stamp)}
+.entrevista h2{margin:0 0 12px;font:700 clamp(28px,5vw,40px)/1.15 "Old Standard TT",Georgia,serif}
+.entrevista .bajada{margin:0 0 28px;font-size:19px;line-height:1.5;font-style:italic}
+.entrevista .intro{font-size:18px;line-height:1.75}
+.entrevista .intro p{margin:0 0 1.1em}
+.entrevista .intro>p:first-child::first-letter{float:left;font:700 64px/.85 "Old Standard TT",Georgia,serif;margin:6px 8px 0 0;color:var(--stamp)}
+.preguntas{list-style:none;margin:40px 0 0;padding:0;counter-reset:none}
+.preguntas li{padding:26px 0;border-top:1px solid var(--ink)}
+.preguntas h3{display:flex;align-items:baseline;gap:12px;margin:0 0 12px;font:700 21px/1.3 "Old Standard TT",Georgia,serif}
+.preguntas .n{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;border:2px solid var(--stamp);border-radius:50%;color:var(--stamp);font-size:15px;transform:translateY(-2px)}
+.preguntas .pregunta{margin:0;font-size:17.5px;line-height:1.7;font-style:italic;color:#2c2a25}
+.preguntas .respuesta{margin-top:14px;padding-left:16px;border-left:3px solid var(--ink);font-size:18px;line-height:1.75}
+.preguntas .respuesta p{margin:0 0 1em}
+.preguntas .pendiente{margin:12px 0 0;font-size:14px;color:var(--grey);letter-spacing:.03em}
+.preguntas .pendiente::before{content:"— "}
+@media (max-width:560px){.preguntas h3{font-size:19px}.entrevista .intro,.preguntas .respuesta{font-size:17px}}

@@ -196,11 +196,43 @@ ${cuerpoHtml}
   <p><b>${columnas.length} columnas</b>${rango?` escritas entre ${rango}`:''}</p>
   <div class="botones"><a class="boton" href="index.html">Ver todas las columnas</a><a class="boton claro" id="al-azar" href="${urlCol(columnas[0])}">Leer una al azar</a></div>
 </aside>`:'';
+  // Entrevista (entrevista.md): "# título", "> bajada", párrafos de introducción y luego, por cada pregunta,
+  // "## N. Título", "P: pregunta" y "R: respuesta" (la respuesta puede seguir en más párrafos). Sin respuesta: "pendiente".
+  const entrevista=(()=>{
+    const f=path.join(RAIZ,'entrevista.md');
+    if(!fs.existsSync(f))return '';
+    const bloques=fs.readFileSync(f,'utf8').replace(/\r\n?/g,'\n').split(/\n\s*\n/).map(b=>b.trim().replace(/\s*\n\s*/g,' ')).filter(Boolean);
+    let titulo='',bajada='';const intro=[],preguntas=[];let q=null,enRespuesta=false;
+    for(const b of bloques){
+      let m;
+      if((m=b.match(/^#\s+(.+)$/))&&!b.startsWith('##')){titulo=m[1];continue;}
+      if((m=b.match(/^>\s*(.+)$/))){bajada=m[1];continue;}
+      if((m=b.match(/^##\s+(?:(\d+)\.\s*)?(.+)$/))){q={n:m[1]||'',t:m[2],p:'',r:[]};preguntas.push(q);enRespuesta=false;continue;}
+      if(q&&(m=b.match(/^P:\s*(.*)$/i))){q.p=m[1];enRespuesta=false;continue;}
+      if(q&&(m=b.match(/^R:\s*(.*)$/i))){if(m[1])q.r.push(m[1]);enRespuesta=true;continue;}
+      if(q){if(enRespuesta)q.r.push(b);else if(!q.p)q.p=b;else{q.r.push(b);enRespuesta=true;}continue;}
+      intro.push(b);
+    }
+    if(!titulo&&!preguntas.length)return '';
+    const p=t=>`<p>${esc(t)}</p>`;
+    return `<section class="entrevista" id="entrevista" aria-labelledby="ent-t">
+  <p class="kicker">Entrevista</p>
+  <h2 id="ent-t">${esc(titulo)}</h2>
+  ${bajada?`<p class="bajada">${esc(bajada)}</p>`:''}
+  <div class="intro">${intro.map(p).join('')}</div>
+  <ol class="preguntas">
+${preguntas.map(x=>`    <li><h3>${x.n?`<span class="n">${esc(x.n)}</span>`:''}${esc(x.t)}</h3>
+      ${x.p?`<p class="pregunta">${esc(x.p)}</p>`:''}
+      ${x.r.length?`<div class="respuesta">${x.r.map(p).join('')}</div>`:'<p class="pendiente">Respuesta pendiente</p>'}</li>`).join('\n')}
+  </ol>
+</section>`;
+  })();
   escribir('el-autor.html',pagina({ruta:'el-autor.html',titulo:'El autor',descripcion:hayFoto&&pie?recorte(pie,160):`Sobre ${CFG.autor}.`,cuerpo:`
 <article class="columna autor">
 ${hayFoto?`<div class="ficha-autor"><img src="autor.jpg" alt="${esc(pie||CFG.autor)}" width="720" height="1378" decoding="async">
-<div class="txt"><h1>${esc(CFG.autor)}</h1><p class="pie">${esc((pie||'').replace(/\s*\n\s*/g,' '))}</p>${parrafos(restoAutor.join('\n\n'))}</div>
+<div class="txt"><h1>${esc(CFG.autor)}</h1><p class="pie">${esc((pie||'').replace(/\s*\n\s*/g,' '))}</p>${parrafos(restoAutor.join('\n\n'))}${entrevista?'<a class="ir-entrevista" href="#entrevista">Leer la entrevista ↓</a>':''}</div>
 ${susColumnas}</div>`:`<h1>${esc(CFG.autor)}</h1><div class="cuerpo">${parrafos(autorTxt||'Texto sobre el autor.')}</div>${susColumnas}`}
+${entrevista}
 </article>`,scripts:columnas.length?`<script>(function(){const U=${JSON.stringify(columnas.map(urlCol))};const a=document.getElementById('al-azar');
 a.addEventListener('click',e=>{e.preventDefault();location.href=U[Math.floor(Math.random()*U.length)];});})();</script>`:''}));
 

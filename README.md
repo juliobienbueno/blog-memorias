@@ -53,6 +53,8 @@ En el panel → **Ajustes** → **Cargar respaldo…** → elige el archivo `dat
 - **Respaldo**: en Ajustes puedes descargar todas las columnas en un archivo.
 - **Mensajes del día** (bajo el título de la portada): botón arriba. Cada semana lleva dos mensajes: uno de lunes a miércoles y otro de jueves a domingo; si una mitad queda vacía, sigue el último que hubo. Un mensaje para un día especial reemplaza al de la semana ese día. El cambio es a medianoche, hora de Chile, sin volver a publicar. (Requiere haber ejecutado `supabase/mensajes.sql` y `supabase/mensajes-semanas.sql` en el SQL Editor de Supabase.)
 - **Presentación**: la foto que acompaña el texto es `plantilla/presentacion.jpg` (si se borra, la presentación queda solo con texto).
+- **Entrevista** (en la página del autor, bajo la foto): su texto está en `entrevista.md`. Cada pregunta va así:
+  `## 3. Título`, luego `P: la pregunta` y luego `R: la respuesta` (la respuesta puede seguir en más párrafos, separados por una línea en blanco). Mientras una pregunta no tenga respuesta, el sitio muestra «Respuesta pendiente».
 - **El autor**: la foto es `plantilla/autor.jpg` y el texto está en `autor.md` (el primer párrafo es el pie de foto; lo demás va debajo).
 - **Presentación** (la ventana "Leer la presentación"): su texto está en `presentacion.md`.
 
