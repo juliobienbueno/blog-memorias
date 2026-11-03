@@ -59,6 +59,16 @@ td.acc{white-space:nowrap}td.acc .btn+.btn{margin-left:8px}
 .n{text-align:right;white-space:nowrap;color:var(--grey);font-variant-numeric:tabular-nums}
 .chip{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid var(--warn);color:#7a520f;background:#f3e6c8}
 .chip.ed{border-color:var(--ok);color:var(--ok);background:#e3ead9}
+.globo{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--stamp);color:#fff;font:700 12px/1 "Libre Baskerville",Georgia,serif}
+.ct-lista{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+.ct-lista>li{border:2px solid var(--ink);background:var(--paper2);padding:14px 16px}
+.ct-lista>li.nuevo{border-width:3px;box-shadow:5px 5px 0 var(--stamp)}
+.ct-lista .cab{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin-bottom:8px}
+.ct-lista .cab b{font:700 17px "Old Standard TT",Georgia,serif}
+.ct-lista .cab small{color:var(--grey);font-size:13px}
+.ct-lista .txt{margin:0;white-space:pre-wrap;font-size:15.5px;line-height:1.6}
+.ct-lista .acc{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.ct-lista .vacio{border:0;background:none;padding:30px;text-align:center;color:var(--grey);font-style:italic}
 .chip.nueva{border-color:var(--stamp);color:#fff;background:var(--stamp);font-weight:700}
 .vacio{padding:30px;text-align:center;color:var(--grey);font-style:italic}
 .nota{margin-top:30px;font-size:13px;color:var(--grey)}
@@ -167,6 +177,7 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
       <a class="btn plano" href="/" target="_blank" rel="noopener">Ver el sitio ↗</a>
       <a class="btn plano" id="b-columnas" href="#">Columnas</a>
       <a class="btn plano" id="b-mensajes" href="#mensajes">Mensajes del día</a>
+      <a class="btn plano" id="b-contacto" href="#contacto">Contacto <span class="globo" id="c-sinleer" hidden></span></a>
       <button class="btn plano" id="b-ajustes" type="button">Ajustes</button>
       <button class="btn plano" id="b-clave" type="button">Cambiar contraseña</button>
       <button class="btn plano" id="b-salir" type="button">Salir</button>
@@ -261,6 +272,14 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
 
     <h3 class="m-tit">Los próximos 7 días</h3>
     <ol class="m-prox" id="m-prox"></ol>
+  </section>
+
+  <!-- ===== Contacto ===== -->
+  <section id="v-contacto" hidden>
+    <div class="barra"><div><h2>Mensajes de lectores</h2><span class="cuenta" id="ct-cuenta"></span></div>
+      <div class="der"><label><input type="checkbox" id="ct-solo"> Solo los no leídos</label></div></div>
+    <p class="nota">Llegan desde la página <b>Contacto</b> del sitio. Para responder, aprieta <b>Responder</b>: se abre tu correo con la dirección de la persona ya puesta.</p>
+    <ul class="ct-lista" id="ct-lista"><li class="vacio">Cargando…</li></ul>
   </section>
 
   <!-- ===== Editor ===== -->

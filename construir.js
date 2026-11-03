@@ -15,10 +15,6 @@ const recorte=(t,n)=>{t=String(t||'').replace(/\s+/g,' ').trim();return t.length
 // Ícono del título: dos huellas (el andar)
 const ICONO_SVG=(extra='')=>`<svg${extra} viewBox="0 0 64 64" aria-hidden="true"><g transform="rotate(-14 22 42)"><ellipse cx="22" cy="38" rx="6.5" ry="10" fill="#1b1a17"/><ellipse cx="22" cy="54.5" rx="4.5" ry="4.5" fill="#1b1a17"/></g><g transform="rotate(12 42 20)"><ellipse cx="42" cy="16" rx="6.5" ry="10" fill="#9c2a22"/><ellipse cx="42" cy="32.5" rx="4.5" ry="4.5" fill="#9c2a22"/></g></svg>`;
 const ICONO=ICONO_SVG(' class="ico"');
-// El correo va escrito al revés en el código y el navegador lo arma al cargar la página:
-// las personas lo ven normal, pero los programas que buscan correos para spam no lo encuentran.
-const correoOculto=c=>{const [u,d]=String(c).split('@'),r=t=>t.split('').reverse().join('');
-  return `<a class="correo" href="#contacto" data-u="${esc(r(u||''))}" data-d="${esc(r(d||''))}">${esc(u)} (arroba) ${esc(d||'')}</a>`;};
 const flecha=d=>`<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"><path d="${d}"/></svg>`;
 
 const ordenar=cols=>cols.sort((a,b)=>((a.anio||9999)-(b.anio||9999))||((a.mes||0)-(b.mes||0))||a.titulo.localeCompare(b.titulo,'es'));
@@ -75,7 +71,7 @@ async function construir(opciones={}){
   const FUENTES=`<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital@0;1&family=Old+Standard+TT:wght@400;700&display=swap" rel="stylesheet">`;
   const ANALITICA=CFG.goatcounter?`<script data-goatcounter="https://${esc(CFG.goatcounter)}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>`:'';
-  const NAV=[['index.html','Portada'],['el-autor.html','El autor'],['buscar.html','Buscar']];
+  const NAV=[['index.html','Portada'],['el-autor.html','El autor'],['buscar.html','Buscar'],['contacto.html','Contacto']];
 
   function pagina({ruta,titulo,descripcion,cuerpo,portada=false,extraHead='',scripts=''}){
     const pre='../'.repeat(ruta.split('/').length-1);
@@ -110,10 +106,9 @@ ${mast}
 <main>
 ${cuerpo}
 </main>
-<footer class="site-foot">${esc(CFG.titulo)}, columnas de ${esc(CFG.autor)}${CFG.contacto?`<span class="sep"> · </span><span class="contacto">Contacto: ${correoOculto(CFG.contacto)}</span>`:''}</footer>
+<footer class="site-foot">${esc(CFG.titulo)}, columnas de ${esc(CFG.autor)}<span class="sep"> · </span><span class="contacto"><a href="${pre}contacto.html">Escríbanos</a></span></footer>
 </div>
-<script>try{history.scrollRestoration='manual'}catch(e){}addEventListener('pageshow',()=>{if(!location.hash)scrollTo(0,0)});
-document.querySelectorAll('a.correo').forEach(a=>{const r=s=>s.split('').reverse().join(''),e=r(a.dataset.u)+'@'+r(a.dataset.d);a.href='mailto:'+e;a.textContent=e;});</script>
+<script>try{history.scrollRestoration='manual'}catch(e){}addEventListener('pageshow',()=>{if(!location.hash)scrollTo(0,0)});</script>
 ${scripts}
 </body>
 </html>
@@ -202,11 +197,12 @@ ${cuerpoHtml}
     const f=path.join(RAIZ,'entrevista.md');
     if(!fs.existsSync(f))return '';
     const bloques=fs.readFileSync(f,'utf8').replace(/\r\n?/g,'\n').split(/\n\s*\n/).map(b=>b.trim().replace(/\s*\n\s*/g,' ')).filter(Boolean);
-    let titulo='',bajada='';const intro=[],preguntas=[];let q=null,enRespuesta=false;
+    let titulo='',bajada='',fecha='';const intro=[],preguntas=[];let q=null,enRespuesta=false;
     for(const b of bloques){
       let m;
       if((m=b.match(/^#\s+(.+)$/))&&!b.startsWith('##')){titulo=m[1];continue;}
       if((m=b.match(/^>\s*(.+)$/))){bajada=m[1];continue;}
+      if(!q&&(m=b.match(/^Fecha:\s*(.+)$/i))){fecha=m[1];continue;}
       if((m=b.match(/^##\s+(?:(\d+)\.\s*)?(.+)$/))){q={n:m[1]||'',t:m[2],p:'',r:[]};preguntas.push(q);enRespuesta=false;continue;}
       if(q&&(m=b.match(/^P:\s*(.*)$/i))){q.p=m[1];enRespuesta=false;continue;}
       if(q&&(m=b.match(/^R:\s*(.*)$/i))){if(m[1])q.r.push(m[1]);enRespuesta=true;continue;}
@@ -216,7 +212,7 @@ ${cuerpoHtml}
     if(!titulo&&!preguntas.length)return '';
     const p=t=>`<p>${esc(t)}</p>`;
     return `<section class="entrevista" id="entrevista" aria-labelledby="ent-t">
-  <p class="kicker">Entrevista</p>
+  <p class="kicker">Entrevista${fecha?` · ${esc(fecha)}`:''}</p>
   <h2 id="ent-t">${esc(titulo)}</h2>
   ${bajada?`<p class="bajada">${esc(bajada)}</p>`:''}
   <div class="intro">${intro.map(p).join('')}</div>
@@ -235,6 +231,54 @@ ${susColumnas}</div>`:`<h1>${esc(CFG.autor)}</h1><div class="cuerpo">${parrafos(
 ${entrevista}
 </article>`,scripts:columnas.length?`<script>(function(){const U=${JSON.stringify(columnas.map(urlCol))};const a=document.getElementById('al-azar');
 a.addEventListener('click',e=>{e.preventDefault();location.href=U[Math.floor(Math.random()*U.length)];});})();</script>`:''}));
+
+  // ---------- Contacto: formulario. El mensaje se guarda en Supabase (se lee en el panel → Contacto)
+  // y además se envía un aviso por correo con FormSubmit (formsubmit.co) a CFG.avisoContacto o CFG.contacto.
+  const urlSB=(process.env.SUPABASE_URL||CFG.supabaseUrl||'').replace(/\/$/,''),claveSB=process.env.SUPABASE_KEY||CFG.supabaseKey;
+  const aviso=String(CFG.avisoContacto||CFG.contacto||'').trim();
+  escribir('contacto.html',pagina({ruta:'contacto.html',titulo:'Contacto',descripcion:`Escríbale a ${CFG.autor}.`,cuerpo:`
+<article class="columna contacto-pag">
+  <h1>Contacto</h1>
+  <p class="bajada">¿Quiere comentar una columna, proponer un tema o simplemente saludar? Escriba aquí su mensaje y le responderemos al correo que nos indique.</p>
+  <form class="form-contacto" id="f-contacto" novalidate>
+    <label for="c-nombre">Su nombre</label>
+    <input id="c-nombre" name="nombre" type="text" autocomplete="name" maxlength="120" required>
+    <label for="c-correo">Su correo <span class="opc">(para poder responderle)</span></label>
+    <input id="c-correo" name="correo" type="email" autocomplete="email" maxlength="200" required>
+    <label for="c-mensaje">Su mensaje</label>
+    <textarea id="c-mensaje" name="mensaje" rows="8" maxlength="5000" required></textarea>
+    <div class="trampa" aria-hidden="true"><label for="c-web">No completar</label><input id="c-web" name="web" type="text" tabindex="-1" autocomplete="off"></div>
+    <button class="boton" type="submit" id="c-enviar">Enviar mensaje</button>
+    <p class="msg-form" id="c-msg" role="status" aria-live="polite"></p>
+  </form>
+  <div class="gracias" id="c-gracias" hidden>
+    <h2>¡Gracias por escribir!</h2>
+    <p>Su mensaje llegó bien. Le responderemos al correo que nos indicó.</p>
+    <p><a class="boton claro" href="index.html">Volver a la portada</a></p>
+  </div>
+</article>`,scripts:`<script>(function(){
+const SB=${JSON.stringify({url:urlSB,clave:claveSB,aviso})};
+const f=document.getElementById('f-contacto'),msg=document.getElementById('c-msg'),btn=document.getElementById('c-enviar');
+const t0=Date.now();
+function error(t,campo){msg.className='msg-form error';msg.textContent=t;if(campo)campo.focus();}
+f.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const nombre=f.nombre.value.trim(),correo=f.correo.value.trim(),mensaje=f.mensaje.value.trim();
+  if(!nombre)return error('Escriba su nombre.',f.nombre);
+  if(!/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(correo))return error('Revise su correo: debe ser como nombre@ejemplo.cl',f.correo);
+  if(!mensaje)return error('Escriba su mensaje.',f.mensaje);
+  // trampa para programas de spam: un campo oculto que las personas no llenan, o un envío demasiado rápido
+  if(f.web.value||Date.now()-t0<3000){f.hidden=true;document.getElementById('c-gracias').hidden=false;return;}
+  btn.disabled=true;msg.className='msg-form';msg.textContent='Enviando…';
+  try{
+    const r=await fetch(SB.url+'/rest/v1/contactos',{method:'POST',headers:{apikey:SB.clave,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({nombre,correo,mensaje})});
+    if(!r.ok)throw new Error(r.status);
+    if(SB.aviso)fetch('https://formsubmit.co/ajax/'+encodeURIComponent(SB.aviso),{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},
+      body:JSON.stringify({_subject:'Nuevo mensaje en Camino al andar',_template:'table',_captcha:'false',_replyto:correo,Nombre:nombre,Correo:correo,Mensaje:mensaje})}).catch(()=>{});
+    f.hidden=true;const g=document.getElementById('c-gracias');g.hidden=false;g.querySelector('h2').setAttribute('tabindex','-1');g.querySelector('h2').focus();
+  }catch(err){btn.disabled=false;error('No se pudo enviar. Revise su conexión a internet e inténtelo de nuevo en unos minutos.');}
+});
+})();</script>`}));
 
   // ---------- Buscar (en el navegador, sin servidor) ----------
   const indice=columnas.map(c=>({t:c.titulo,a:c.anio||'',f:c.fecha||'',r:recorte(c.resumen,200),u:urlCol(c),x:`${c.bajada||''} ${c.tema||''} ${c.texto||''}`}));
@@ -256,7 +300,7 @@ q.addEventListener('input',f);const u=new URLSearchParams(location.search).get('
 
   // ---------- SEO: sitemap y robots ----------
   if(URL_SITIO){
-    const urls=['','el-autor.html',...columnas.map(urlCol)];
+    const urls=['','el-autor.html','contacto.html',...columnas.map(urlCol)];
     escribir('sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u=>`  <url><loc>${esc(URL_SITIO+'/'+u)}</loc></url>`).join('\n')}\n</urlset>\n`);
   }
   escribir('robots.txt',`User-agent: *\nAllow: /\nDisallow: /admin/\n${URL_SITIO?`Sitemap: ${URL_SITIO}/sitemap.xml\n`:''}`);

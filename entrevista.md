@@ -1,5 +1,7 @@
 # Las inteligentes preguntas que me formuló la AI
 
+Fecha: Octubre de 2026
+
 > Una entrevista poco convencional del chat GPT a Raúl Gutiérrez, al cumplir este periodista chileno 80 años de edad. Las respuestas quedan pendientes
 
 Durante buena parte de su vida, Raúl ha ejercido el periodismo, observado la realidad y expresado sus opiniones sobre los más diversos asuntos. Ha hecho preguntas, formulado juicios y, probablemente, incomodado a más de alguno con sus reflexiones. Ahora, cuando cumple 80 años, los papeles se invierten.

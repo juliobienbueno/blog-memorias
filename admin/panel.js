@@ -82,6 +82,10 @@ const DB={
   nuevoMensaje:m=>rest('mensajes',{metodo:'POST',cuerpo:[m],prefer:'return=representation'}),
   cambiarMensaje:async(id,m)=>(await rest('mensajes?id=eq.'+id,{metodo:'PATCH',cuerpo:m,prefer:'return=representation'}))[0],
   borrarMensaje:id=>rest('mensajes?id=eq.'+id,{metodo:'DELETE'}),
+  contactos:()=>rest('contactos?select=id,nombre,correo,mensaje,leido,creado&order=creado.desc'),
+  sinLeer:async()=>(await rest('contactos?select=id&leido=eq.false')).length,
+  marcarContacto:(id,leido)=>rest('contactos?id=eq.'+id,{metodo:'PATCH',cuerpo:{leido}}),
+  borrarContacto:id=>rest('contactos?id=eq.'+id,{metodo:'DELETE'}),
   fijarAjuste:(k,v)=>rest('ajustes?on_conflict=clave',{metodo:'POST',cuerpo:[{clave:k,valor:v}],prefer:'resolution=merge-duplicates'})
 };
 
@@ -109,11 +113,11 @@ addEventListener('beforeunload',e=>{if(cuentaPub>0||sucio||[...document.querySel
 
 // ================= Vistas =================
 function mostrar(v){
-  for(const id of ['v-acceso','v-lista','v-editor','v-mensajes'])$('#'+id).hidden=id!==v;
+  for(const id of ['v-acceso','v-lista','v-editor','v-mensajes','v-contacto'])$('#'+id).hidden=id!==v;
   $('#acciones').hidden=v==='v-acceso';
   // la sección en la que estás queda marcada en oscuro
-  const marcado=v==='v-mensajes'?'#b-mensajes':'#b-columnas';
-  for(const b of ['#b-columnas','#b-mensajes'])b===marcado?$(b).setAttribute('aria-current','page'):$(b).removeAttribute('aria-current');
+  const marcado=v==='v-mensajes'?'#b-mensajes':v==='v-contacto'?'#b-contacto':'#b-columnas';
+  for(const b of ['#b-columnas','#b-mensajes','#b-contacto'])b===marcado?$(b).setAttribute('aria-current','page'):$(b).removeAttribute('aria-current');
 }
 function formAcceso(f){for(const id of ['f-entrar','f-recuperar','f-nueva'])$('#'+id).hidden=id!==f;mostrar('v-acceso');const i=$('#'+f+' input');if(i)i.focus();}
 function salirForzado(){guardarSesion(null);formAcceso('f-entrar');$('#a-msg').textContent='Tu sesión terminó. Vuelve a entrar.';}
@@ -351,7 +355,7 @@ $('#ed-volver').onclick=()=>{
   if(sucio&&!avisoSalir){avisoSalir=true;estado('Tienes cambios sin guardar. Pulsa de nuevo «Volver» para descartarlos.','error');setTimeout(()=>avisoSalir=false,4000);return;}
   avisoSalir=false;sucio=false;location.hash='';
 };
-function ruta(){const m=location.hash.match(/^#editar\/([\w-]+)$/);if(m)abrirEditor(m[1]);else if(location.hash==='#mensajes'){actual=null;abrirMensajes();}else if(actual||$('#v-lista').hidden)cerrarEditor();}
+function ruta(){const m=location.hash.match(/^#editar\/([\w-]+)$/);if(m)abrirEditor(m[1]);else if(location.hash==='#mensajes'){actual=null;abrirMensajes();}else if(location.hash==='#contacto'){actual=null;abrirContacto();}else if(actual||$('#v-lista').hidden)cerrarEditor();}
 addEventListener('hashchange',()=>{
   if(!sesion)return;
   if(sucio&&!location.hash.startsWith('#editar/'+actual)){history.replaceState(null,'','#editar/'+actual);estado('Tienes cambios sin guardar. Guarda o pulsa dos veces «Volver» para descartarlos.','error');return;}
@@ -457,10 +461,47 @@ $('#m-lista').addEventListener('click',async e=>{
 function alertaMsj(li,t){let p=li.querySelector('.msg');if(!p){p=document.createElement('p');p.className='msg';li.firstElementChild.append(p);}p.textContent=t;}
 
 // ================= Inicio =================
+// ================= Contacto (mensajes de lectores) =================
+let contactos=[];
+async function actualizarGlobo(n){
+  try{if(n==null)n=await DB.sinLeer();}catch{n=0;}
+  const g=$('#c-sinleer');g.hidden=!n;g.textContent=n;g.title=n+' sin leer';
+}
+async function abrirContacto(){
+  mostrar('v-contacto');scrollTo(0,0);
+  try{contactos=await DB.contactos();pintarContacto();}
+  catch(err){$('#ct-lista').innerHTML=`<li class="vacio">${esc(/contactos/.test(err.message)&&/does not exist|could not find/i.test(err.message)?'Falta crear la tabla de contactos en Supabase: ejecuta el archivo supabase/contacto.sql en el SQL Editor.':err.message)}</li>`;}
+}
+function pintarContacto(){
+  const solo=$('#ct-solo').checked,sin=contactos.filter(c=>!c.leido).length;
+  $('#ct-cuenta').textContent=` · ${contactos.length} mensaje${contactos.length===1?'':'s'}${sin?` · ${sin} sin leer`:''}`;
+  const vis=contactos.filter(c=>!solo||!c.leido);
+  $('#ct-lista').innerHTML=vis.length?vis.map(c=>`<li data-id="${c.id}" class="${c.leido?'':'nuevo'}">
+    <div class="cab"><b>${esc(c.nombre)}</b><a href="mailto:${esc(c.correo)}">${esc(c.correo)}</a><small>${esc(new Date(c.creado).toLocaleString('es-CL',{dateStyle:'long',timeStyle:'short'}))}</small>${c.leido?'':'<span class="chip nueva">sin leer</span>'}</div>
+    <p class="txt">${esc(c.mensaje)}</p>
+    <div class="acc"><a class="btn chico osc" href="mailto:${esc(c.correo)}?subject=${encodeURIComponent('Re: su mensaje en Camino al andar')}" data-responder>Responder</a>
+      <button class="btn chico" type="button" data-leido>${c.leido?'Marcar como no leído':'Marcar como leído'}</button>
+      <button class="btn chico peligro" type="button" data-quitar>Quitar</button></div></li>`).join('')
+    :`<li class="vacio">${contactos.length?'No hay mensajes sin leer.':'Todavía no llegan mensajes.'}</li>`;
+  actualizarGlobo(sin);
+}
+$('#ct-solo').onchange=pintarContacto;
+$('#ct-lista').addEventListener('click',async e=>{
+  const li=e.target.closest('li[data-id]');if(!li)return;const id=+li.dataset.id,c=contactos.find(x=>x.id===id);
+  try{
+    if(e.target.closest('[data-responder]')){if(!c.leido){await DB.marcarContacto(id,true);c.leido=true;setTimeout(pintarContacto,300);}return;}
+    if(e.target.closest('[data-leido]')){await DB.marcarContacto(id,!c.leido);c.leido=!c.leido;pintarContacto();return;}
+    const b=e.target.closest('[data-quitar]');if(!b)return;
+    if(!b.classList.contains('si')){b.classList.add('si');b.textContent='¿Seguro?';setTimeout(()=>{if(b.isConnected){b.classList.remove('si');b.textContent='Quitar';}},3000);return;}
+    await DB.borrarContacto(id);contactos=contactos.filter(x=>x.id!==id);pintarContacto();
+  }catch(err){nota('error',esc(err.message));}
+});
+
 async function iniciar(){
   $('#quien').textContent=sesion.email;
   mostrar('v-lista');
   try{hook=await DB.ajuste('vercel_deploy_hook');}catch{hook='';}
+  actualizarGlobo();
   await cargar();ruta();
 }
 (function arrancar(){

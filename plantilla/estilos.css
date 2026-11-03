@@ -220,3 +220,20 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
 .preguntas .pendiente{margin:12px 0 0;font-size:14px;color:var(--grey);letter-spacing:.03em}
 .preguntas .pendiente::before{content:"— "}
 @media (max-width:560px){.preguntas h3{font-size:19px}.entrevista .intro,.preguntas .respuesta{font-size:17px}}
+/* Página de contacto: formulario grande y simple */
+.form-contacto{display:flex;flex-direction:column;margin-top:26px}
+.form-contacto label{margin:18px 0 6px;font:700 17px "Old Standard TT",Georgia,serif}
+.form-contacto label:first-child{margin-top:0}
+.form-contacto .opc{font:italic 400 14px "Libre Baskerville",Georgia,serif;color:var(--grey)}
+.form-contacto input,.form-contacto textarea{width:100%;padding:12px 14px;border:2px solid var(--ink);background:#f3efe4;color:var(--ink);font:18px/1.5 "Libre Baskerville",Georgia,serif;border-radius:0}
+.form-contacto textarea{min-height:180px;resize:vertical}
+.form-contacto input:focus,.form-contacto textarea:focus{outline:3px solid var(--stamp);outline-offset:1px}
+.form-contacto .boton{align-self:flex-start;margin-top:24px;min-height:52px;padding:0 26px;font-size:17px;cursor:pointer}
+.form-contacto .boton:disabled{opacity:.6;cursor:default}
+.form-contacto .trampa{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.msg-form{min-height:1.5em;margin:14px 0 0;font-size:16px;color:var(--grey)}
+.msg-form.error{color:var(--stamp);font-weight:700}
+.gracias{margin-top:26px;padding:24px 26px;border:3px solid var(--ink);background:#e9e5da;box-shadow:6px 6px 0 var(--shadow)}
+.gracias h2{margin:0 0 8px;font:700 26px "Old Standard TT",Georgia,serif}
+.gracias p{margin:0 0 14px;font-size:17px}
+@media (max-width:560px){.form-contacto .boton{align-self:stretch;justify-content:center}}
