@@ -354,7 +354,7 @@ const u=new URLSearchParams(location.search);if(u.get('q'))q.value=u.get('q');pa
   fs.mkdirSync(path.join(SALIDA,'admin'),{recursive:true});
   for(const f of ['index.html','panel.js'])fs.copyFileSync(path.join(RAIZ,'admin',f),path.join(SALIDA,'admin',f));
   fs.copyFileSync(path.join(RAIZ,'lib','nucleo.js'),path.join(SALIDA,'admin','nucleo.js'));
-  escribir('admin/config.js',`window.CONFIG=${JSON.stringify({supabaseUrl:(process.env.SUPABASE_URL||CFG.supabaseUrl||'').replace(/\/$/,''),supabaseKey:process.env.SUPABASE_KEY||CFG.supabaseKey,sitio:CFG.titulo,advertencia:CFG.advertencia||''})};\n`);
+  escribir('admin/config.js',`window.CONFIG=${JSON.stringify({supabaseUrl:(process.env.SUPABASE_URL||CFG.supabaseUrl||'').replace(/\/$/,''),supabaseKey:process.env.SUPABASE_KEY||CFG.supabaseKey,sitio:CFG.titulo,advertencia:CFG.advertencia||'',correo:CFG.avisoContacto||CFG.contacto||''})};\n`);
   return columnas.length;
 }
 

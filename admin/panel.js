@@ -526,16 +526,40 @@ async function abrirContacto(){
   try{contactos=await DB.contactos();pintarContacto();}
   catch(err){$('#ct-lista').innerHTML=`<li class="vacio">${esc(/contactos/.test(err.message)&&/does not exist|could not find/i.test(err.message)?'Falta crear la tabla de contactos en Supabase: ejecuta el archivo supabase/contacto.sql en el SQL Editor.':err.message)}</li>`;}
 }
+// Bandeja tipo Gmail: cada mensaje es una fila cerrada (nombre, comienzo del mensaje y fecha).
+// Al abrirlo se marca como leído; "Responder" abre Gmail en la cuenta del sitio con el correo ya escrito.
+const abiertos=new Set();
+const CUENTA=(C.correo||'').trim();
+const urlGmail=(extra='')=>`https://mail.google.com/mail/${CUENTA?'u/'+encodeURIComponent(CUENTA).replace('%40','@')+'/':''}${extra}`;
+function urlResponder(c){
+  const cuando=new Date(c.creado).toLocaleString('es-CL',{dateStyle:'long',timeStyle:'short'});
+  const cita=`\n\n\n— El ${cuando}, ${c.nombre} escribió desde Camino al andar:\n`+c.mensaje.split('\n').map(l=>'> '+l).join('\n');
+  return urlGmail('?view=cm&fs=1&to='+encodeURIComponent(c.correo)+'&su='+encodeURIComponent('Re: su mensaje en Camino al andar')+'&body='+encodeURIComponent(cita));
+}
+function fechaBandeja(iso){
+  const d=new Date(iso),hoy=new Date();
+  if(d.toDateString()===hoy.toDateString())return d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('es-CL',{day:'numeric',month:'short',...(d.getFullYear()!==hoy.getFullYear()?{year:'numeric'}:{})}).replace('.','');
+}
 function pintarContacto(){
   const solo=$('#ct-solo').checked,sin=contactos.filter(c=>!c.leido).length;
   $('#ct-cuenta').textContent=` · ${contactos.length} mensaje${contactos.length===1?'':'s'}${sin?` · ${sin} sin leer`:''}`;
-  const vis=contactos.filter(c=>!solo||!c.leido);
-  $('#ct-lista').innerHTML=vis.length?vis.map(c=>`<li data-id="${c.id}" class="${c.leido?'':'nuevo'}">
-    <div class="cab"><b>${esc(c.nombre)}</b><a href="mailto:${esc(c.correo)}">${esc(c.correo)}</a><small>${esc(new Date(c.creado).toLocaleString('es-CL',{dateStyle:'long',timeStyle:'short'}))}</small>${c.leido?'':'<span class="chip nueva">sin leer</span>'}</div>
-    <p class="txt">${esc(c.mensaje)}</p>
-    <div class="acc"><a class="btn chico osc" href="mailto:${esc(c.correo)}?subject=${encodeURIComponent('Re: su mensaje en Camino al andar')}" data-responder>Responder</a>
-      <button class="btn chico" type="button" data-leido>${c.leido?'Marcar como no leído':'Marcar como leído'}</button>
-      <button class="btn chico peligro" type="button" data-quitar>Quitar</button></div></li>`).join('')
+  $('#ct-gmail').href=urlGmail('#inbox');
+  const vis=contactos.filter(c=>!solo||!c.leido||abiertos.has(c.id));
+  $('#ct-lista').innerHTML=vis.length?vis.map(c=>{const ab=abiertos.has(c.id);return `<li data-id="${c.id}" class="${c.leido?'leido':'nuevo'}${ab?' abierto':''}">
+    <button class="fila" type="button" data-abrir aria-expanded="${ab}">
+      <span class="punto" aria-hidden="true"></span>
+      <span class="de">${esc(c.nombre)}</span>
+      <span class="resumen">${esc(c.mensaje.replace(/\s+/g,' '))}</span>
+      <time datetime="${esc(c.creado)}">${esc(fechaBandeja(c.creado))}</time>
+      ${c.leido?'':'<span class="oculto">(sin leer)</span>'}
+    </button>
+    ${ab?`<div class="detalle">
+      <div class="cab"><b>${esc(c.nombre)}</b><span>&lt;${esc(c.correo)}&gt;</span><small>${esc(new Date(c.creado).toLocaleString('es-CL',{dateStyle:'full',timeStyle:'short'}))}</small></div>
+      <p class="txt">${esc(c.mensaje)}</p>
+      <div class="acc"><a class="btn chico osc" href="${esc(urlResponder(c))}" target="_blank" rel="noopener">Responder en Gmail ↗</a>
+        <button class="btn chico" type="button" data-leido>${c.leido?'Marcar como no leído':'Marcar como leído'}</button>
+        <button class="btn chico peligro" type="button" data-quitar>Quitar</button></div></div>`:''}</li>`;}).join('')
     :`<li class="vacio">${contactos.length?'No hay mensajes sin leer.':'Todavía no llegan mensajes.'}</li>`;
   actualizarGlobo(sin);
 }
@@ -543,11 +567,16 @@ $('#ct-solo').onchange=pintarContacto;
 $('#ct-lista').addEventListener('click',async e=>{
   const li=e.target.closest('li[data-id]');if(!li)return;const id=+li.dataset.id,c=contactos.find(x=>x.id===id);
   try{
-    if(e.target.closest('[data-responder]')){if(!c.leido){await DB.marcarContacto(id,true);c.leido=true;setTimeout(pintarContacto,300);}return;}
-    if(e.target.closest('[data-leido]')){await DB.marcarContacto(id,!c.leido);c.leido=!c.leido;pintarContacto();return;}
+    if(e.target.closest('[data-abrir]')){
+      if(abiertos.has(id))abiertos.delete(id);else abiertos.add(id);
+      const marcar=!c.leido&&abiertos.has(id);if(marcar)c.leido=true;
+      pintarContacto();
+      if(marcar)await DB.marcarContacto(id,true);
+      return;}
+    if(e.target.closest('[data-leido]')){await DB.marcarContacto(id,!c.leido);c.leido=!c.leido;if(!c.leido)abiertos.delete(id);pintarContacto();return;}
     const b=e.target.closest('[data-quitar]');if(!b)return;
     if(!b.classList.contains('si')){b.classList.add('si');b.textContent='¿Seguro?';setTimeout(()=>{if(b.isConnected){b.classList.remove('si');b.textContent='Quitar';}},3000);return;}
-    await DB.borrarContacto(id);contactos=contactos.filter(x=>x.id!==id);pintarContacto();
+    await DB.borrarContacto(id);contactos=contactos.filter(x=>x.id!==id);abiertos.delete(id);pintarContacto();
   }catch(err){nota('error',esc(err.message));}
 });
 

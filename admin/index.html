@@ -60,15 +60,36 @@ td.acc{white-space:nowrap}td.acc .btn+.btn{margin-left:8px}
 .chip{display:inline-block;margin-top:4px;padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid var(--warn);color:#7a520f;background:#f3e6c8}
 .chip.ed{border-color:var(--ok);color:var(--ok);background:#e3ead9}
 .globo{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--stamp);color:#fff;font:700 12px/1 "Libre Baskerville",Georgia,serif}
-.ct-lista{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
-.ct-lista>li{border:2px solid var(--ink);background:var(--paper2);padding:14px 16px}
-.ct-lista>li.nuevo{border-width:3px;box-shadow:5px 5px 0 var(--stamp)}
-.ct-lista .cab{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin-bottom:8px}
+.ct-lista{list-style:none;margin:14px 0 0;padding:0;border:2px solid var(--ink);background:var(--paper2)}
+.ct-lista>li{border-bottom:1px solid #cfc8b8}
+.ct-lista>li:last-child{border-bottom:0}
+.ct-lista .fila{all:unset;box-sizing:border-box;display:grid;grid-template-columns:14px minmax(120px,200px) 1fr auto;gap:14px;align-items:center;width:100%;padding:13px 16px;cursor:pointer;font-size:15px}
+.ct-lista .fila:hover{background:#efe9dc;box-shadow:inset 3px 0 0 var(--ink)}
+.ct-lista .fila:focus-visible{outline:3px solid var(--ink);outline-offset:-3px}
+.ct-lista .punto{width:10px;height:10px;border-radius:50%}
+.ct-lista .nuevo .punto{background:var(--stamp)}
+.ct-lista .de,.ct-lista .resumen{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ct-lista .resumen{color:var(--grey)}
+.ct-lista time{font-size:13px;color:var(--grey);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ct-lista .nuevo .fila{background:#f4efe3}
+.ct-lista .nuevo .de,.ct-lista .nuevo time{font-weight:700;color:var(--ink)}
+.ct-lista .nuevo .resumen{color:var(--ink)}
+.ct-lista .leido .fila{background:rgba(0,0,0,.03)}
+.ct-lista .abierto .fila{background:#e9e3d6}
+.ct-lista .detalle{padding:6px 16px 18px 44px;background:var(--paper2)}
+.ct-lista .cab{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin-bottom:10px}
 .ct-lista .cab b{font:700 17px "Old Standard TT",Georgia,serif}
-.ct-lista .cab small{color:var(--grey);font-size:13px}
-.ct-lista .txt{margin:0;white-space:pre-wrap;font-size:15.5px;line-height:1.6}
-.ct-lista .acc{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-.ct-lista .vacio{border:0;background:none;padding:30px;text-align:center;color:var(--grey);font-style:italic}
+.ct-lista .cab span{color:var(--grey);font-size:14px}
+.ct-lista .cab small{color:var(--grey);font-size:13px;width:100%}
+.ct-lista .txt{margin:0;white-space:pre-wrap;font-size:15.5px;line-height:1.6;max-width:70ch}
+.ct-lista .acc{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.ct-lista .vacio{padding:30px;text-align:center;color:var(--grey);font-style:italic}
+@media (max-width:760px){
+  .ct-lista .fila{grid-template-columns:12px 1fr auto;gap:4px 10px}
+  .ct-lista .punto{grid-row:1;grid-column:1}.ct-lista .de{grid-row:1;grid-column:2}.ct-lista time{grid-row:1;grid-column:3}
+  .ct-lista .resumen{grid-row:2;grid-column:2/4}
+  .ct-lista .detalle{padding-left:16px}
+}
 .chip.nueva{border-color:var(--stamp);color:#fff;background:var(--stamp);font-weight:700}
 .vacio{padding:30px;text-align:center;color:var(--grey);font-style:italic}
 .nota{margin-top:30px;font-size:13px;color:var(--grey)}
@@ -322,8 +343,8 @@ dialog .fila.izq{justify-content:flex-start;flex-wrap:wrap}
   <!-- ===== Contacto ===== -->
   <section id="v-contacto" hidden>
     <div class="barra"><div><h2>Mensajes de lectores</h2><span class="cuenta" id="ct-cuenta"></span></div>
-      <div class="der"><label><input type="checkbox" id="ct-solo"> Solo los no leídos</label></div></div>
-    <p class="nota">Llegan desde la página <b>Contacto</b> del sitio. Para responder, aprieta <b>Responder</b>: se abre tu correo con la dirección de la persona ya puesta.</p>
+      <div class="der"><label><input type="checkbox" id="ct-solo"> Solo los no leídos</label><a class="btn chico" id="ct-gmail" href="https://mail.google.com/" target="_blank" rel="noopener">Abrir Gmail ↗</a></div></div>
+    <p class="nota">Llegan desde la página <b>Contacto</b> del sitio. Haz clic en un mensaje para abrirlo (queda como leído). <b>Responder en Gmail</b> abre Gmail en una pestaña nueva con la dirección, el asunto y el mensaje original ya puestos.</p>
     <ul class="ct-lista" id="ct-lista"><li class="vacio">Cargando…</li></ul>
   </section>
 
