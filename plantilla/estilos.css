@@ -241,3 +241,18 @@ dialog.pres::backdrop{background:rgba(27,26,23,.62)}
 .msg-form{margin-top:10px}
 main:has(.contacto-pag)+.site-foot{margin-top:18px}
 .msg-form:empty{display:none}
+/* Buscar: buscador al lado del título y paginación de 10 en 10 */
+.buscar-cab{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px 28px;margin-top:clamp(16px,3vh,32px);padding-bottom:16px;border-bottom:3px double var(--ink)}
+.buscar-cab h1{margin:0;font:700 clamp(32px,5vw,44px)/1.05 "Old Standard TT",Georgia,serif}
+.buscar-cab p{margin:6px 0 0;font-style:italic;color:var(--grey);font-size:15px}
+.buscar-form{flex:1 1 320px;max-width:520px;margin:0}
+.buscar-form .buscador{max-width:none;margin:0}
+.oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.paginas{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;margin:26px 0 6px}
+.paginas .nums{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.paginas button{min-width:42px;min-height:42px;padding:0 12px;border:2px solid var(--ink);background:transparent;color:var(--ink);font:700 15px "Old Standard TT",Georgia,serif;cursor:pointer}
+.paginas button:hover:not(:disabled){background:#e9e5da}
+.paginas button[aria-current="page"]{background:var(--ink);color:var(--paper);cursor:default}
+.paginas button:disabled{opacity:.35;cursor:default}
+.paginas .puntos{align-self:center;padding:0 2px;color:var(--grey)}
+@media (max-width:560px){.buscar-form{flex-basis:100%;max-width:none}.paginas>button{flex:1}.paginas .nums{order:-1;flex-basis:100%}}

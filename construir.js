@@ -307,19 +307,41 @@ f.addEventListener('submit',async e=>{
   // ---------- Buscar (en el navegador, sin servidor) ----------
   const indice=columnas.map(c=>({t:c.titulo,a:c.anio||'',f:c.fecha||'',r:recorte(c.resumen,200),u:urlCol(c),x:`${c.bajada||''} ${c.tema||''} ${c.texto||''}`}));
   escribir('buscar.html',pagina({ruta:'buscar.html',titulo:'Buscar',descripcion:`Buscar entre las columnas de ${CFG.autor}.`,cuerpo:`
-<div class="head"><div><h1>Buscar</h1><p>Busca por palabra, título o año</p></div></div>
-<input class="buscador" id="q" type="search" placeholder="Escribe una palabra…" aria-label="Buscar columnas" autocomplete="off">
+<div class="buscar-cab">
+  <div><h1>Buscar</h1><p>Busca por palabra, título o año</p></div>
+  <form class="buscar-form" role="search" onsubmit="return false"><label class="oculto" for="q">Buscar columnas</label>
+    <input class="buscador" id="q" type="search" placeholder="Escribe una palabra…" autocomplete="off"></form>
+</div>
 <p class="contador" id="n" aria-live="polite"></p>
-<ul class="lista" id="res"></ul>`,scripts:`<script>
+<ul class="lista" id="res"></ul>
+<nav class="paginas" id="pag" aria-label="Páginas de resultados"></nav>`,scripts:`<script>
+const POR_PAGINA=10;
 const D=${JSON.stringify(indice).replace(/</g,'\\u003c')};
 const norm=s=>String(s).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase();
 D.forEach(d=>d.z=norm([d.t,d.a,d.f,d.x].join(' ')));
-const q=document.getElementById('q'),res=document.getElementById('res'),n=document.getElementById('n');
+const q=document.getElementById('q'),res=document.getElementById('res'),n=document.getElementById('n'),pag=document.getElementById('pag');
 const e=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function f(){const p=norm(q.value).split(/\\s+/).filter(Boolean);const r=D.filter(d=>p.every(w=>d.z.includes(w)));
-n.textContent=p.length?r.length+' resultado'+(r.length===1?'':'s'):D.length+' columnas';
-res.innerHTML=r.map(d=>'<li><span class="a">'+e(d.a)+'</span><span><a href="'+d.u+'">'+e(d.t)+'</a><small>'+e(d.r)+'</small></span></li>').join('');}
-q.addEventListener('input',f);const u=new URLSearchParams(location.search).get('q');if(u)q.value=u;f();
+let pagina=1;
+// Lista de números a mostrar: siempre la primera, la última y las vecinas de la actual (1 … 4 5 6 … 15)
+function numeros(actual,total){const s=new Set([1,total,actual-1,actual,actual+1]);const l=[...s].filter(x=>x>=1&&x<=total).sort((a,b)=>a-b);
+  const out=[];l.forEach((x,i)=>{if(i&&x-l[i-1]>1)out.push('…');out.push(x);});return out;}
+function mostrar({subir=false,guardar=true}={}){
+  const p=norm(q.value).split(/\\s+/).filter(Boolean);const r=p.length?D.filter(d=>p.every(w=>d.z.includes(w))):D;
+  const total=Math.max(1,Math.ceil(r.length/POR_PAGINA));if(pagina>total)pagina=total;if(pagina<1)pagina=1;
+  const desde=(pagina-1)*POR_PAGINA,trozo=r.slice(desde,desde+POR_PAGINA);
+  n.textContent=r.length?(p.length?r.length+' resultado'+(r.length===1?'':'s'):r.length+' columnas')+(total>1?' · mostrando '+(desde+1)+' a '+(desde+trozo.length):''):'No hay columnas con esas palabras.';
+  res.innerHTML=trozo.map(d=>'<li><span class="a">'+e(d.a)+'</span><span><a href="'+d.u+'">'+e(d.t)+'</a><small>'+e(d.r)+'</small></span></li>').join('');
+  pag.innerHTML=total>1?'<button type="button" data-p="'+(pagina-1)+'"'+(pagina===1?' disabled':'')+' aria-label="Página anterior">← Anterior</button><span class="nums">'+
+    numeros(pagina,total).map(x=>x==='…'?'<span class="puntos">…</span>':'<button type="button" data-p="'+x+'"'+(x===pagina?' aria-current="page"':'')+' aria-label="Página '+x+'">'+x+'</button>').join('')+
+    '</span><button type="button" data-p="'+(pagina+1)+'"'+(pagina===total?' disabled':'')+' aria-label="Página siguiente">Siguiente →</button>':'';
+  if(guardar){const u=new URLSearchParams();if(q.value.trim())u.set('q',q.value.trim());if(pagina>1)u.set('p',pagina);
+    history.replaceState(null,'',location.pathname+(u.toString()?'?'+u:''));}
+  if(subir)document.querySelector('.buscar-cab').scrollIntoView({behavior:'smooth',block:'start'});
+}
+let espera;
+q.addEventListener('input',()=>{clearTimeout(espera);espera=setTimeout(()=>{pagina=1;mostrar();},150);});
+pag.addEventListener('click',ev=>{const b=ev.target.closest('button[data-p]');if(!b||b.disabled)return;pagina=+b.dataset.p;mostrar({subir:true});});
+const u=new URLSearchParams(location.search);if(u.get('q'))q.value=u.get('q');pagina=+u.get('p')||1;mostrar({guardar:false});
 </script>`}));
 
   // ---------- SEO: sitemap y robots ----------
